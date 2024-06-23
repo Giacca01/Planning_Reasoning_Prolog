@@ -1,6 +1,6 @@
 % Dimensioni labirinto
-num_col(10).
-num_righe(10).
+num_col(20).
+num_righe(20).
 
 % Elenco ostacoli
 
@@ -31,7 +31,5 @@ iniziale(pos(1,1)).
 %iniziale(pos(1,1)).
 
 % Uscita Labirinto
-finale(pos(7,9)).
-finale(pos(2,9)).
-finale(pos(2,2)).
+finale(pos(12,13)).
 %finale(pos(10,2)).

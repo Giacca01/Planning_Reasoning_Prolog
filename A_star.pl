@@ -32,7 +32,7 @@ generaNuoviStati(_, [], []).
 generaNuoviStati([S, Cammino, StimaCosto], [Az|Tail], [[SNuovo, [Az|Cammino], StimaNuovoCosto]|NuoviStati]) :-
     trasforma(Az, S, SNuovo),
     length(Cammino, CostoEffettivo),
-    manhattan(SNuovo, pos(7, 9), ValEuristica),
+    euristica(SNuovo, ValEuristica),
     % possiamo assumere che le azioni abbiano costo unitario
     StimaNuovoCosto is CostoEffettivo + ValEuristica + 1,
     generaNuoviStati([S, Cammino, StimaCosto], Tail, NuoviStati).
@@ -51,7 +51,6 @@ valutaStati([[NuovoStato, Cammino, StimaCosto]|NuoviStati], Open, NewOpen, Close
     % Stato già visitato
     findCost(Open, NuovoStato, CostoCorrente),
     StimaCosto < CostoCorrente,
-    % TODO: vedere se funzioni omettendo il cammino
     select([NuovoStato, _, CostoCorrente], Open, TmpOpen),
     % Non Corretto
     insertOrdered(NuovoStato, StimaCosto, Cammino, TmpOpen, AuxOpen),
@@ -94,6 +93,14 @@ invertiAux([], Tmp, Tmp).
 invertiAux([Head|Tail], Tmp, Inversa) :-
     invertiAux(Tail, [Head|Tmp], Inversa).
 
+euristica(pos(R1, C1), Result) :-
+    findall(Uscita, finale(Uscita), ElencoUscite),
+    manhattan(pos(R1, C1), ElencoUscite, Result).
 
-manhattan(pos(R1, C1), pos(R2, C2), Result) :-
+manhattan(pos(R1, C1), [pos(R2, C2)], Result) :-
     Result is abs(R1 - R2) + abs(C1 - C2).
+
+manhattan(pos(R1, C1), [pos(R2, C2)|Tail], Result) :-
+    manhattan(pos(R1, C1), Tail, CurrMin),
+    CurrDist is abs(R1 - R2) + abs(C1 - C2),
+    Result is min(CurrMin, CurrDist).
