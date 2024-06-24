@@ -6,11 +6,8 @@ ricerca(Cammino) :-
 
 
 ida([[S, Cammino, Costo]|_], Soglia, CurrMin, NewMin):-
-    length(Visitati, CostoEffettivo),
-    euristica(S, StimaCosto),
-    StimaTotale is CostoEffettivo + StimaCosto,
     % lo stato corrente è entro il limite: procediamo con la valutazione
-    StimaTotale < Soglia,
+    Soglia >= Costo,
     finale(S),
     % Ultima iterazione dell'algoritmo
     !.
@@ -23,12 +20,11 @@ ida([[S, Cammino, Costo]|Tail], Soglia, CurrMin, NewMin):-
     % Genero i nodi figli
     findall(Az, applicabile(Az, S), AzioniApplicabili),
     generaNuoviStati([S, Cammino, Costo], AzioniApplicabili, Tail, Successori),
-    % TODO:controllare di non aver già visitato lo stato, ma rispetto a quale coda?
-    ida(Successori, Soglia, NewVisitati, Soglia, NewMin).
+    ida(Successori, Soglia, Soglia, NewMin).
 
 
 ida([[S, Cammino, Costo]|Tail], Soglia, CurrMin, NewMin) :-
-    TmpMin is min(Soglia, Costo),
+    TmpMin is min(CurrMin, Costo),
     ida(Tail, Soglia, TmpMin, NewMin).
 
 ida([], _, CurrMin, _) :-
@@ -39,18 +35,24 @@ ida([], _, CurrMin, _) :-
 
 
 
-generaNuoviStati(_, [], StatiDaVisitare, StatiDaVisitare).
+generaNuoviStati(_, [], StatiDaVisitare, StatiDaVisitare) :- !.
+
 generaNuoviStati([S, Cammino, Costo], [Az|Tail], StatiDaVisitare, NewStatiDaVisitare) :-
-    trasforma(Az, S, SNuovo),
+    trasforma(Az, S, SNuovo),   
     length(Cammino, CostoEffettivo),
     euristica(SNuovo, StimaCosto),
     StimaTotale is CostoEffettivo + StimaCosto + 1,
-    generaNuoviStati([S, Cammino, Costo], Tail, StatiDaVisitare, TmpStatiDaVisitare),
-    insertOrdered(SNuovo, StimaTotale, [Az|Cammino], TmpStatiDaVisitare, NewStatiDaVisitare).
-    
+    \+member([[SNuovo, [Az|Cammino], StimaTotale]], StatiDaVisitare),
+    !,
+    insertOrdered(SNuovo, StimaTotale, [Az|Cammino], StatiDaVisitare, TmpStatiDaVisitare),
+    generaNuoviStati([S, Cammino, Costo], Tail, TmpStatiDaVisitare, NewStatiDaVisitare).
+
+generaNuoviStati([S, Cammino, Costo], [Az|Tail], StatiDaVisitare, NewStatiDaVisitare) :-
+    trasforma(Az, S, SNuovo), 
+    generaNuoviStati([S, Cammino, Costo], Tail, StatiDaVisitare, NewStatiDaVisitare).
 
 
-insertOrdered(Stato, Costo, Cammino, [], [[Stato, Cammino, Costo]]).
+insertOrdered(Stato, Costo, Cammino, [], [[Stato, Cammino, Costo]]) :- !.
 insertOrdered(NuovoStato, NuovoCosto, NuovoCammino, [[Stato, Cammino, Costo]|Successori], [[NuovoStato, NuovoCammino, NuovoCosto], [Stato, Cammino, Costo]|Successori]) :-
     NuovoCosto < Costo,
     !.

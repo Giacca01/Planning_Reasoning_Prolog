@@ -1,6 +1,6 @@
 % Dimensioni labirinto
-num_col(20).
-num_righe(20).
+num_col(10).
+num_righe(10).
 
 % Elenco ostacoli
 
@@ -27,9 +27,8 @@ occupata(pos(4,10)).
 %occupata(pos(1, 5)).
 
 % Posizione iniziale agente
-iniziale(pos(1,1)).
+iniziale(pos(4,2)).
 %iniziale(pos(1,1)).
 
 % Uscita Labirinto
-finale(pos(12,13)).
-%finale(pos(10,2)).
+finale(pos(7,9)).

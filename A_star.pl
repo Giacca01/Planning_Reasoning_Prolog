@@ -28,7 +28,7 @@ astar([[S, Cammino, StimaCosto]|Open], Closed, Risultato) :-
 
     
 
-generaNuoviStati(_, [], []).
+generaNuoviStati(_, [], []) :- !.
 generaNuoviStati([S, Cammino, StimaCosto], [Az|Tail], [[SNuovo, [Az|Cammino], StimaNuovoCosto]|NuoviStati]) :-
     trasforma(Az, S, SNuovo),
     length(Cammino, CostoEffettivo),
@@ -77,7 +77,7 @@ findCost([[_, _, Costo]|Tail], StatoTarget, CostoTarget) :-
     findCost(Tail, StatoTarget, CostoTarget).
 
 
-insertOrdered(Stato, Costo, Cammino, [], [[Stato, Cammino, Costo]]).
+insertOrdered(Stato, Costo, Cammino, [], [[Stato, Cammino, Costo]]) :- !.
 insertOrdered(NuovoStato, NuovoCosto, NuovoCammino, [[Stato, Cammino, Costo]|Open], [[NuovoStato, NuovoCammino, NuovoCosto], [Stato, Cammino, Costo]|Open]) :-
     NuovoCosto < Costo,
     !.
