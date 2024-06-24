@@ -1,65 +1,56 @@
-ricerca(Cammino) :-
+ricerca(CamminoFinale) :-
     iniziale(S0),
     euristica(S0, Soglia),
-    ida([[S0, [], 0]], Soglia, Soglia, NewMin).
+    ida(S0, [], [], Soglia, Soglia, NewMin, CamminoFinale).
 
 
-
-ida([[S, Cammino, Costo]|_], Soglia, CurrMin, NewMin):-
+ida(S, Cammino, Visitati, Soglia, CurrMin, NewMin, Cammino):-
     % lo stato corrente è entro il limite: procediamo con la valutazione
-    Soglia >= Costo,
+    \+member(S, Visitati),
+    length(Cammino, CostoEffettivo),
+    euristica(S, StimaCosto),
+    StimaTotale is CostoEffettivo + StimaCosto,
+    Soglia >= StimaTotale,
     finale(S),
     % Ultima iterazione dell'algoritmo
     !.
 
-ida([[S, Cammino, Costo]|Tail], Soglia, CurrMin, NewMin):-
+ida(S, Cammino, Visitati, Soglia, CurrMin, NewMin, CamminoFinale):-
     % Verifichi di non aver superato la soglia di ricerca
     % lo stato corrente è entro il limite: procediamo con la valutazione
-    Soglia >= Costo,
+    \+member(S, Visitati),
+    length(Cammino, CostoEffettivo),
+    euristica(S, StimaCosto),
+    StimaTotale is CostoEffettivo + StimaCosto,
+    Soglia >= StimaTotale,
     !,
     % Genero i nodi figli
-    findall(Az, applicabile(Az, S), AzioniApplicabili),
-    generaNuoviStati([S, Cammino, Costo], AzioniApplicabili, Tail, Successori),
-    ida(Successori, Soglia, Soglia, NewMin).
+    applicabile(Az, S),
+    trasforma(Az, S, SNuovo),
+    % TODO: tenere conto del fatto che gli stati oltre soglia non vengono aggiunti
+    % all'elenco dei visitati
+    ida(SNuovo, [Az|Cammino], [S|Visitati], Soglia, Soglia, NewMin, CamminoFinale).
 
 
-ida([[S, Cammino, Costo]|Tail], Soglia, CurrMin, NewMin) :-
-    TmpMin is min(CurrMin, Costo),
-    ida(Tail, Soglia, TmpMin, NewMin).
+ida(S, Cammino, Visitati, Soglia, CurrMin, NewMin, _) :-
+    \+member(S, Visitati),
+    !,
+    length(Cammino, CostoEffettivo),
+    euristica(S, StimaCosto),
+    StimaTotale is CostoEffettivo + StimaCosto,
+    TmpMin is min(CurrMin, StimaTotale),
+    % In teoria bisogna forzare il backtracking in modo da valutare tutti i successori...
+    fail.
 
-ida([], _, CurrMin, _) :-
+% Se il nodo fa già parte del path non ci sono regole applicabili
+% quindi la ricerca fallisce e si passa al successivo
+
+% Regola che scatta dopo il fallimento dell'esplorazione dell'ultimo figlio
+ida(_, _, _, CurrMin, CurrMin, _, CamminoFinale) :-
     % ATTENZIONE!! Non funziona con tanti stati iniziali diversi, perchè
     % non è detto che prenda sempre lo stesso in tutte le run
     iniziale(S0),
-    ida([[S0, [], 0]], CurrMin, CurrMin, NewMin).
-
-
-
-generaNuoviStati(_, [], StatiDaVisitare, StatiDaVisitare) :- !.
-
-generaNuoviStati([S, Cammino, Costo], [Az|Tail], StatiDaVisitare, NewStatiDaVisitare) :-
-    trasforma(Az, S, SNuovo),   
-    length(Cammino, CostoEffettivo),
-    euristica(SNuovo, StimaCosto),
-    StimaTotale is CostoEffettivo + StimaCosto + 1,
-    \+member([[SNuovo, [Az|Cammino], StimaTotale]], StatiDaVisitare),
-    !,
-    insertOrdered(SNuovo, StimaTotale, [Az|Cammino], StatiDaVisitare, TmpStatiDaVisitare),
-    generaNuoviStati([S, Cammino, Costo], Tail, TmpStatiDaVisitare, NewStatiDaVisitare).
-
-generaNuoviStati([S, Cammino, Costo], [Az|Tail], StatiDaVisitare, NewStatiDaVisitare) :-
-    trasforma(Az, S, SNuovo), 
-    generaNuoviStati([S, Cammino, Costo], Tail, StatiDaVisitare, NewStatiDaVisitare).
-
-
-insertOrdered(Stato, Costo, Cammino, [], [[Stato, Cammino, Costo]]) :- !.
-insertOrdered(NuovoStato, NuovoCosto, NuovoCammino, [[Stato, Cammino, Costo]|Successori], [[NuovoStato, NuovoCammino, NuovoCosto], [Stato, Cammino, Costo]|Successori]) :-
-    NuovoCosto < Costo,
-    !.
-% sfrutto la possibilità di poter definire la forma della lista
-insertOrdered(NuovoStato, NuovoCosto, NuovoCammino, [[Stato, Cammino, Costo]|Successori], [[Stato, Cammino, Costo]|NewSuccessori]) :-
-    insertOrdered(NuovoStato, NuovoCosto, NuovoCammino, Successori, NewSuccessori).
-
+    ida(S0, [], [], CurrMin, CurrMin, NewMin, CamminoFinale).
 
 
 euristica(pos(R1, C1), Result) :-
@@ -73,3 +64,10 @@ manhattan(pos(R1, C1), [pos(R2, C2)|Tail], Result) :-
     manhattan(pos(R1, C1), Tail, CurrMin),
     CurrDist is abs(R1 - R2) + abs(C1 - C2),
     Result is min(CurrMin, CurrDist).
+
+% Inversione lista contenente il cammino completo
+inverti(ListPrinc, Inversa) :- invertiAux(ListPrinc, [], Inversa).
+
+invertiAux([], Tmp, Tmp).
+invertiAux([Head|Tail], Tmp, Inversa) :-
+    invertiAux(Tail, [Head|Tmp], Inversa).
