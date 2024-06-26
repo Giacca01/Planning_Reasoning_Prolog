@@ -3,7 +3,6 @@ num_col(10).
 num_righe(10).
 
 % Elenco ostacoli
-
 occupata(pos(2,5)).
 occupata(pos(3,5)).
 occupata(pos(4,5)).
@@ -24,11 +23,9 @@ occupata(pos(4,9)).
 occupata(pos(4,10)).
 
 
-%occupata(pos(1, 5)).
-
 % Posizione iniziale agente
 iniziale(pos(4,2)).
-%iniziale(pos(1,1)).
 
 % Uscita Labirinto
 finale(pos(7,9)).
+finale(pos(2,9)).

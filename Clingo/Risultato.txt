@@ -1,0 +1,11 @@
+clingo version 5.7.1
+Reading from Calendario.cl
+Solving...
+Answer: 1
+partita(milan,inter,sansiro,7) partita(milan,juventus,sansiro,3) partita(milan,atalanta,sansiro,7) partita(milan,bologna,sansiro,8) partita(inter,milan,sansiro,4) partita(inter,juventus,sansiro,3) partita(inter,atalanta,sansiro,3) partita(inter,bologna,sansiro,5) partita(juventus,inter,allianz,4) partita(juventus,milan,allianz,4) partita(juventus,atalanta,allianz,3) partita(juventus,bologna,allianz,3) partita(bologna,inter,dallara,3) partita(bologna,milan,dallara,3) partita(bologna,juventus,dallara,3) partita(bologna,atalanta,dallara,3) partita(atalanta,inter,gewiss,8) partita(atalanta,milan,gewiss,8) partita(atalanta,juventus,gewiss,8) partita(atalanta,bologna,gewiss,4)
+SATISFIABLE
+
+Models       : 1+
+Calls        : 1
+Time         : 0.001s (Solving: 0.00s 1st Model: 0.00s Unsat: 0.00s)
+CPU Time     : 0.001s
