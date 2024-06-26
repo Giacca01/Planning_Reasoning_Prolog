@@ -21,6 +21,7 @@ occupata(pos(4,7)).
 occupata(pos(4,8)).
 occupata(pos(4,9)).
 occupata(pos(4,10)).
+occupata(pos(1,5)).
 
 
 % Posizione iniziale agente
