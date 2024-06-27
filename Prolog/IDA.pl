@@ -1,19 +1,29 @@
+% Calcolare soglia massima minimo
+
 ricerca(CamminoFinale) :-
     iniziale(S0),
     euristica(S0, Soglia),
+    NumeroTentativi is Soglia * 2,
     ida(S0, [], [], Soglia, 500, NewMinimo, CamminoCorrente, UltimoStato),
-    fine(NewMinimo, UltimoStato, CamminoCorrente, CamminoFinale).
+    fine(NewMinimo, UltimoStato, CamminoCorrente, CamminoInverso, NumeroTentativi),
+    inverti(CamminoInverso, CamminoFinale).
 
-fine(NuovaSoglia, UltimoStato, _, CamminoFinale) :-
-    \+finale(UltimoStato),
+fine(NuovaSoglia, UltimoStato, CamminoCorrente, CamminoCorrente, NumeroTentativi) :-
+    finale(UltimoStato),
+    !.
+
+fine(NuovaSoglia, UltimoStato, _, CamminoFinale, NumeroTentativi, MaxVal) :-
+   % \+finale(UltimoStato),
+    NumeroTentativi > 0,
     !,
     iniziale(S0),
     euristica(S0, Soglia),
     !,
     ida(S0, [], [], NuovaSoglia, 500, NewMinimo, CamminoCorrente, StatoFin),
-    fine(NewMinimo, StatoFin, CamminoCorrente, CamminoFinale).
+    NewNumTentativi is NumeroTentativi - 1,
+    fine(NewMinimo, StatoFin, CamminoCorrente, CamminoFinale, NewNumTentativi).
 
-fine(NuovaSoglia, _, CamminoCorrente, CamminoCorrente).
+
 
 
 ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, CamminoCorrente, S) :-
@@ -26,8 +36,6 @@ ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, CamminoCorrente, S) :-
     !.
 
 % Se lo stato è già stato visitato non ho regole da applicare e quindi fallisco
-
-
 ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, Cammino, S):-
     % lo stato corrente è entro il limite: procediamo con la valutazione
     \+member(S, Visitati),
@@ -40,8 +48,6 @@ ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, CamminoFinale, SFinale):-
     % Genero i nodi figli
     applicabile(Az, S),
     trasforma(Az, S, SNuovo),
-    % TODO: tenere conto del fatto che gli stati oltre soglia non vengono aggiunti
-    % all'elenco dei visitati
     ida(SNuovo, [Az|Cammino], [S|Visitati], Soglia, Minimo, NewMinimo, CamminoFinale, SFinale).
 
 % Se il nodo fa già parte del path non ci sono regole applicabili

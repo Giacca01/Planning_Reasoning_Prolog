@@ -1,16 +1,14 @@
-% Versione con pochi ostacoli
+num_col(5).
+num_righe(5).
 
-% Dimensioni labirinto
-num_col(10).
-num_righe(10).
+occupata(pos(1, 3)).
+occupata(pos(2, 3)).
+occupata(pos(3, 3)).
+occupata(pos(4, 3)).
+occupata(pos(5, 3)).
 
-% Elenco ostacoli
-occupata(pos(2,5)).
-occupata(pos(8,7)).
+iniziale(pos(1, 1)).
 
-% Posizione iniziale agente
-iniziale(pos(4,2)).
-
-% Uscita Labirinto
-finale(pos(7,9)).
-finale(pos(2,9)).
+%finale(pos(5, 4)).
+finale(pos(3, 5)).
+finale(pos(5, 5)).

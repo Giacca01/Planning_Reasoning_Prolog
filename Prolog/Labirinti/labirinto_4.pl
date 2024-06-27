@@ -1,20 +1,16 @@
-% Maze dimensions
-num_righe(20).
-num_col(20).
+% Versione con pochi ostacoli
 
-% Starting position
-iniziale(pos(1, 1)).
+% Dimensioni labirinto
+num_col(10).
+num_righe(10).
 
-% Exits
-finale(pos(20, 20)).
-finale(pos(1, 20)).
+% Elenco ostacoli
+occupata(pos(2,5)).
+occupata(pos(8,7)).
 
-% Walls (2% of 400 positions is 8 walls, ensuring exits are reachable)
-occupata(pos(1, 3)).
-occupata(pos(2, 3)).
-occupata(pos(3, 3)).
-occupata(pos(4, 3)).
-occupata(pos(5, 3)).
-occupata(pos(6, 3)).
-occupata(pos(7, 3)).
-occupata(pos(8, 3)).
+% Posizione iniziale agente
+iniziale(pos(4,2)).
+
+% Uscita Labirinto
+finale(pos(7,9)).
+finale(pos(2,9)).

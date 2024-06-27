@@ -1,5 +1,6 @@
 ricerca(Cammino) :-
     iniziale(S0),
+    euristica(S0, Prova),
     astar([[S0, [], 0]], [], CamminoInverso),
     inverti(CamminoInverso, Cammino).
 
@@ -23,11 +24,14 @@ astar([[S, Cammino, StimaCosto]|Open], Closed, Risultato) :-
     % e le memorizzo in ListaAzioni
     findall(Az, applicabile(Az, S), AzApplicabili),
     generaNuoviStati([S, Cammino, StimaCosto], AzApplicabili, NuoviStati),
+    % Durante la valutazione dei successori potrei doverne estrarre alcuni
+    % dalla coda dei chiusi e rimetterli negli aperti, oltre a verificare
+    % l'appartenenza alle 2 code
     valutaStati(NuoviStati, Open, OpenModified, NewClosed, ClosedModified),
     astar(OpenModified, ClosedModified, Risultato).
 
     
-
+% TODO: vedere se questo cut serva effettivamente a qualcosa
 generaNuoviStati(_, [], []) :- !.
 generaNuoviStati([S, Cammino, StimaCosto], [Az|Tail], [[SNuovo, [Az|Cammino], StimaNuovoCosto]|NuoviStati]) :-
     trasforma(Az, S, SNuovo),
@@ -39,6 +43,10 @@ generaNuoviStati([S, Cammino, StimaCosto], [Az|Tail], [[SNuovo, [Az|Cammino], St
 
 
 valutaStati([], Open, Open, Closed, Closed).
+
+% Non si può postare: altrimenti non avremmo la certezza
+% che l'ultima regola scatti solo quando lo stato è già stato visitato
+% ed il nuovo percorso non è migliore del precedente
 valutaStati([[NuovoStato, Cammino, StimaCosto]|NuoviStati], Open, NewOpen, Closed, NewClosed) :-
     \+findCost(Open, NuovoStato, _),
     \+findCost(Closed, NuovoStato, _),
@@ -98,7 +106,8 @@ euristica(pos(R1, C1), Result) :-
     manhattan(pos(R1, C1), ElencoUscite, Result).
 
 manhattan(pos(R1, C1), [pos(R2, C2)], Result) :-
-    Result is abs(R1 - R2) + abs(C1 - C2).
+    Result is abs(R1 - R2) + abs(C1 - C2),
+    !.
 
 manhattan(pos(R1, C1), [pos(R2, C2)|Tail], Result) :-
     manhattan(pos(R1, C1), Tail, CurrMin),
