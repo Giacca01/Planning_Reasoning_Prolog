@@ -2,7 +2,7 @@ num_col(10).
 num_righe(10).
 iniziale(pos(2, 5)).
 finale(pos(10, 10)).
-finale(pos(2, 10)).
+finale(pos(8, 10)).
 finale(pos(6, 1)).
 finale(pos(10, 4)).
 occupata(pos(3, 2)).

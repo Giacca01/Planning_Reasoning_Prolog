@@ -6,11 +6,10 @@ squadra(milan).
 squadra(juventus).
 squadra(atalanta).
 squadra(bologna).
-
-%* squadra(roma).
-squadra(lazio).
+squadra(roma).
+%*squadra(lazio).
 squadra(fiorentina).
-squadra(torino).
+quadra(torino).  % TODO: Sistemare corrispondenza stadio
 squadra(napoli).
 squadra(genoa).
 squadra(monza).
@@ -23,10 +22,8 @@ squadra(cagliari). *%
 citta(milano).
 citta(torino).
 citta(bergamo).
-citta(bologna).
-
-%* citta(roma).
-citta(firenze).
+citta(roma).
+%*citta(firenze).
 citta(napoli).
 citta(genova).
 citta(monza).
@@ -39,11 +36,10 @@ citta(cagliari). *%
 % TODO: lo stadio va associato alla squadra e non alla città
 stadio(sansiro).
 stadio(allianz).
-stadio(dallara).
 stadio(gewiss).
-
-%* stadio(olimpicoRoma).
-stadio(olimpicoTorino).
+stadio(olimpicoRoma).
+stadio(dallara).
+%*stadio(olimpicoTorino).
 stadio(franchi).
 stadio(maradona).
 stadio(marassi).
@@ -56,30 +52,28 @@ stadio(unipol). *%
 % Associazioni
 associateA(milan, milano).
 associateA(inter, milano).
-associateA(bologna, bologna).
 associateA(juventus, torino).
 associateA(atalanta, bergamo).
-
-%* associateA(roma, roma).
-associateA(lazio, roma).
+associateA(bologna, bologna).
+associateA(roma, roma).
+%*associateA(lazio, roma).
 associateA(torino, torino).
 associateA(genoa, genova).
 associateA(fiorentina, firenze).
 associateA(napoli, napoli).
-associateA(cagliari, cagliari).
 associateA(monza, monza).
 associateA(verona, verona).
+associateA(lecce, lecce). 
 associateA(udinese, udine).
-associateA(lecce, lecce). *%
+associateA(cagliari, cagliari)*%
 
 % Associazione Città-Stadi
 situatiIn(sansiro, milano).
 situatiIn(allianz, torino).
 situatiIn(dallara, bologna).
 situatiIn(gewiss, bergamo).
-
-%* situatiIn(olimpicoRoma, roma).
-situatiIn(olimpicoTorino, torino).
+situatiIn(olimpicoRoma, roma).
+%*situatiIn(olimpicoTorino, torino).
 situatiIn(franchi, firenze).
 situatiIn(maradona, napoli).
 situatiIn(marassi, genova).
@@ -91,10 +85,10 @@ situatiIn(unipol, cagliari). *%
 
 
 % Girone d'andata
-andata(1..4).
+andata(1..5).
 
 % Girone di ritorno
-ritorno(5..8).
+ritorno(6..10).
 
 giornata(X) :- andata(X).
 giornata(X) :- ritorno(X).
@@ -105,24 +99,42 @@ giornata(X) :- ritorno(X).
 % partita(squadra1, squadra2, stadio, giornata).
 
 
-% Proviamo ora a dire che il girone d'andata va da 1 a 15 e quello di ritorno da 16 a 30
-% più che altro, serve una regola per calcolare i valori di partita
-1 {partita(Squadra1, Squadra2, Stadio, Giornata): giornata(Giornata)} 1 :- 
-    squadra(Squadra1),
-    squadra(Squadra2),
+% Ogni squadra deve giocare in tutte le giornate
+:- giornata(Giornata), squadra(Squadra), not partita(Squadra, _, _, Giornata), not partita(_, Squadra, _, Giornata).
+
+% Per ogni coppia di squadre, esiste una sola giornata in cui si affrontano
+% in teoria dovrebbe bastare sia per imporre che giochino uno volta in casa ed una in trasferta
+
+
+% Vincoli di livello macro, riguardanti tutto il calendario
+% Per ogni coppia squadra1-giornata, c'è al più una partita giocata in casa da Squadra1
+1 {partita(Squadra1, Squadra2, Stadio, Giornata) : giornata(Giornata)} 1 :- 
+    squadra(Squadra1), 
+    squadra(Squadra2), 
     Squadra1 != Squadra2,
     associateA(Squadra1, Citta),
     situatiIn(Stadio, Citta).
 
-1 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra2), Squadra1 != Squadra2} 1 :- 
-    squadra(Squadra1), 
+0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra2), Squadra2 != Squadra1} 1 :-
     giornata(Giornata),
+    squadra(Squadra1),
     associateA(Squadra1, Citta),
     situatiIn(Stadio, Citta).
 
+0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra1), associateA(Squadra1, Citta), situatiIn(Stadio, Citta), Squadra1 != Squadra2} 1 :-
+    giornata(Giornata),
+    squadra(Squadra2).
+
+
+% La stessa squadra non può giocare in casa e in trasferta nella giornata
+:- partita(Squadra1, _, _, Giornata), partita(_, Squadra1, _, Giornata).
+
+
+% Questo è sicuramente subsunto dall'imporre Squadra1 != Squadra2 nei vincoli precedenti
+% :- partita(Squadra1, Squadra1, _, _).
 
 % Non ci devono essere più partite tra le stesse squadre nello stesso girone
-%* :- partita(Squadra1, Squadra2, _, Giornata1), 
+:- partita(Squadra1, Squadra2, _, Giornata1), 
     partita(Squadra2, Squadra1, _, Giornata2), 
     andata(Giornata1),
     andata(Giornata2).
@@ -131,12 +143,6 @@ giornata(X) :- ritorno(X).
     partita(Squadra2, Squadra1, _, Giornata2), 
     ritorno(Giornata1),
     ritorno(Giornata2).
-
-:- partita(Squadra1, Squadra1, _, _). *%
-
-%* :- squadra(Squadra1), partita(Squadra1, Squadra1, _, _).
-    situatiIn(Stadio, Citta), *%
-
 
 % Due squadre non possono giocare nello stesso stadio e nella stessa giornata
 % Ad assicurarsi che lo stadio sia ben impostato sono i vincoli "costruttivi"

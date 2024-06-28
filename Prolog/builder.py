@@ -24,8 +24,24 @@ class MazeApp:
         self.init_maze_grid()
 
     def init_maze_grid(self):
-        self.canvas = tk.Canvas(self.root, width=self.num_cols*30, height=self.num_rows*30)
-        self.canvas.pack()
+        self.frame = tk.Frame(self.root)
+        self.frame.pack(fill=tk.BOTH, expand=1)
+
+        self.canvas = tk.Canvas(self.frame)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
+
+        self.scrollbar_y = tk.Scrollbar(self.frame, orient=tk.VERTICAL, command=self.canvas.yview)
+        self.scrollbar_y.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.scrollbar_x = tk.Scrollbar(self.root, orient=tk.HORIZONTAL, command=self.canvas.xview)
+        self.scrollbar_x.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.canvas.configure(yscrollcommand=self.scrollbar_y.set, xscrollcommand=self.scrollbar_x.set)
+        self.canvas.bind('<Configure>', lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+
+        self.grid_frame = tk.Frame(self.canvas)
+        self.canvas.create_window((0, 0), window=self.grid_frame, anchor="nw")
+
         for row in range(self.num_rows):
             row_cells = []
             for col in range(self.num_cols):
@@ -37,8 +53,9 @@ class MazeApp:
                 row_cells.append(cell)
                 self.cell_states[(col, row)] = 0  # Initialize cell click count
             self.grid.append(row_cells)
+
         self.save_button = tk.Button(self.root, text="Save to Prolog", command=self.save_to_prolog)
-        self.save_button.pack()
+        self.save_button.pack(pady=10)
 
     def on_cell_click(self, x, y):
         self.cell_states[(x, y)] += 1
