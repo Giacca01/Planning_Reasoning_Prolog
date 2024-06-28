@@ -140,6 +140,7 @@ gemmaRaccolta(pos(R, C)).
 
 % Effetti del movimento ad Est
 trasforma(est, pos(R, C), pos(R, CDx)) :- 
+    % TODO:  Questo va modificato in modo che ci si sposti fino al primo ostacolo incontrato
     CDx is C + 1,
     martello(pos(R, CDx)),
     possiedeMartello(pos(R, CDx)).
