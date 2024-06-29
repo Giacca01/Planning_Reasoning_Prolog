@@ -9,6 +9,12 @@
 % iniziamo dando la modellazione più espressiva possibile
 % eventuali efficientamenti verranno dopo
 
+% Conviene metterla per prima, perchè la maggior parte degli ostacoli sarà fisso
+applicabile(nord, pos(R, C)) :-
+    R > 1,
+    RUp is R - 1,
+    \+occupata(pos(RUp, C)).
+
 % Condizioni di applicabilità spostamento a nord
 applicabile(nord, pos(R, C)) :-
     R > 1,
@@ -44,15 +50,15 @@ applicabile(nord, pos(R, C)) :-
     % In una cella con avversario non posso muovermi mai
     \+avversario(pos(RUp, C)).
 
-% TODO: aggiungere cut sincerandosi che parta solo quando non ci sono altri ostacoli
-applicabile(nord, pos(R, C)) :-
-    R > 1,
-    RUp is R - 1,
-    \+occupata(pos(RUp, C)).
-
 
 
 % Condizioni di applicabilità spostamento a sud
+applicabile(sud, pos(R, C)) :-
+    num_righe(N),
+    R < N,
+    RDown is R + 1,
+    \+occupata(pos(RDown, C)).
+
 applicabile(sud, pos(R, C)) :-
     num_righe(N),
     R < N,
@@ -67,14 +73,14 @@ applicabile(sud, pos(R, C)) :-
     RDown is R + 1,
     \+avversario(pos(RDown, C)).
 
-applicabile(sud, pos(R, C)) :-
-    num_righe(N),
-    R < N,
-    RDown is R + 1,
-    \+occupata(pos(RDown, C)).
-
 
 % Condizioni di applicabilità spostamento ad est
+applicabile(est, pos(R, C)):-
+    num_col(N),
+    C < N,
+    CRight is C + 1,
+    \+occupata(pos(R, CRight)).
+
 applicabile(est, pos(R, C)):-
     num_col(N),
     C < N,
@@ -89,15 +95,14 @@ applicabile(est, pos(R, C)):-
     CRight is C + 1,
     \+avversario(pos(R, CRight)).
 
-applicabile(est, pos(R, C)):-
-    num_col(N),
-    C < N,
-    CRight is C + 1,
-    \+occupata(pos(R, CRight)).
-
 
 
 % Condizioni di applicabilità spostamento ad ovest
+applicabile(ovest, pos(R, C)):-
+    C > 1,
+    CLeft is C - 1,
+    \+occupata(pos(R, CLeft)).
+
 applicabile(ovest, pos(R, C)):-
     C > 1,
     CLeft is C - 1,
@@ -109,11 +114,6 @@ applicabile(ovest, pos(R, C)):-
     C > 1,
     CLeft is C - 1,
     \+avversario(pos(R, CLeft)).
-
-applicabile(ovest, pos(R, C)):-
-    C > 1,
-    CLeft is C - 1,
-    \+occupata(pos(R, CLeft)).
 
 
 % effetto delle azioni sullo stato
@@ -141,9 +141,16 @@ gemmaRaccolta(pos(R, C)).
 % Effetti del movimento ad Est
 trasforma(est, pos(R, C), pos(R, CDx)) :- 
     % TODO:  Questo va modificato in modo che ci si sposti fino al primo ostacolo incontrato
+    % in più, tutti gli oggetti devono spostarsi nella stessa direzione
+
+    % Idea: con findAll recupero mostri, gemme ed ostacoli in ghiaccio
+    % ed applico a tutti una regola trasforma che codica solo la componente di movimento
+    % cioè la modifica della singola coordinata
     CDx is C + 1,
     martello(pos(R, CDx)),
     possiedeMartello(pos(R, CDx)).
+
+trasformaCoord(est, )
 
 
 trasforma(est, pos(R, C), pos(R, CDx)) :- 

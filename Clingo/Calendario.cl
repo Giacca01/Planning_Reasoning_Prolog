@@ -1,3 +1,10 @@
+%*
+    Cose da provare:
+
+    1) codifiche alternative dei dati
+    2) riduzione numero di derby (per ora sono 3, tanti)
+*%
+
 % Definizione dati problema
 
 % Definizione squadre
@@ -7,13 +14,13 @@ squadra(juventus).
 squadra(atalanta).
 squadra(bologna).
 squadra(roma).
-%*squadra(lazio).
+%squadra(lazio).
 squadra(fiorentina).
-quadra(torino).  % TODO: Sistemare corrispondenza stadio
+%quadra(torino).
 squadra(napoli).
 squadra(genoa).
 squadra(monza).
-squadra(verona).
+%*squadra(verona).
 squadra(lecce).
 squadra(udinese).
 squadra(cagliari). *%
@@ -23,28 +30,28 @@ citta(milano).
 citta(torino).
 citta(bergamo).
 citta(roma).
-%*citta(firenze).
+citta(bologna).
+citta(firenze).
 citta(napoli).
 citta(genova).
 citta(monza).
-citta(verona).
+%*citta(verona).
 citta(lecce).
 citta(udine).
 citta(cagliari). *%
 
 % Definizione Stadi
-% TODO: lo stadio va associato alla squadra e non alla città
 stadio(sansiro).
 stadio(allianz).
 stadio(gewiss).
 stadio(olimpicoRoma).
 stadio(dallara).
-%*stadio(olimpicoTorino).
+%stadio(olimpicoTorino).
 stadio(franchi).
 stadio(maradona).
 stadio(marassi).
 stadio(upower).
-stadio(bentegodi).
+%*stadio(bentegodi).
 stadio(viadelmare).
 stadio(friuli).
 stadio(unipol). *%
@@ -56,39 +63,41 @@ associateA(juventus, torino).
 associateA(atalanta, bergamo).
 associateA(bologna, bologna).
 associateA(roma, roma).
-%*associateA(lazio, roma).
-associateA(torino, torino).
+%associateA(lazio, roma).
+%associateA(torino, torino).
 associateA(genoa, genova).
 associateA(fiorentina, firenze).
 associateA(napoli, napoli).
 associateA(monza, monza).
-associateA(verona, verona).
+%*associateA(verona, verona).
 associateA(lecce, lecce). 
 associateA(udinese, udine).
 associateA(cagliari, cagliari)*%
 
-% Associazione Città-Stadi
-situatiIn(sansiro, milano).
-situatiIn(allianz, torino).
-situatiIn(dallara, bologna).
-situatiIn(gewiss, bergamo).
-situatiIn(olimpicoRoma, roma).
-%*situatiIn(olimpicoTorino, torino).
-situatiIn(franchi, firenze).
-situatiIn(maradona, napoli).
-situatiIn(marassi, genova).
-situatiIn(upower, monza).
-situatiIn(bentegodi, verona).
-situatiIn(viadelmare, lecce).
-situatiIn(friuli, udine).
-situatiIn(unipol, cagliari). *%
+% Associazione Città-Squadre
+possessoStadio(sansiro, inter).
+possessoStadio(sansiro, milan).
+possessoStadio(allianz, juventus).
+possessoStadio(dallara, bologna).
+possessoStadio(gewiss, atalanta).
+possessoStadio(olimpicoRoma, roma).
+%possessoStadio(olimpicoRoma, lazio).
+%possessoStadio(olimpicoTorino, torino).
+possessoStadio(franchi, fiorentina).
+possessoStadio(maradona, napoli).
+possessoStadio(marassi, genoa).
+possessoStadio(upower, monza).
+%*possessoStadio(bentegodi, verona).
+possessoStadio(viadelmare, lecce).
+possessoStadio(friuli, udinese).
+possessoStadio(unipol, cagliari). *%
 
 
 % Girone d'andata
-andata(1..5).
+andata(1..9).
 
 % Girone di ritorno
-ritorno(6..10).
+ritorno(10..18).
 
 giornata(X) :- andata(X).
 giornata(X) :- ritorno(X).
@@ -106,6 +115,7 @@ giornata(X) :- ritorno(X).
 % in teoria dovrebbe bastare sia per imporre che giochino uno volta in casa ed una in trasferta
 
 
+% TODO: sistemare questi vincoli, in modo che funzioni anche con squadre della stessa città
 % Vincoli di livello macro, riguardanti tutto il calendario
 % Per ogni coppia squadra1-giornata, c'è al più una partita giocata in casa da Squadra1
 1 {partita(Squadra1, Squadra2, Stadio, Giornata) : giornata(Giornata)} 1 :- 
@@ -113,15 +123,15 @@ giornata(X) :- ritorno(X).
     squadra(Squadra2), 
     Squadra1 != Squadra2,
     associateA(Squadra1, Citta),
-    situatiIn(Stadio, Citta).
+    possessoStadio(Stadio, Squadra1).
 
 0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra2), Squadra2 != Squadra1} 1 :-
     giornata(Giornata),
     squadra(Squadra1),
     associateA(Squadra1, Citta),
-    situatiIn(Stadio, Citta).
+    possessoStadio(Stadio, Squadra1).
 
-0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra1), associateA(Squadra1, Citta), situatiIn(Stadio, Citta), Squadra1 != Squadra2} 1 :-
+0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra1), associateA(Squadra1, Citta), possessoStadio(Stadio, Squadra1), Squadra1 != Squadra2} 1 :-
     giornata(Giornata),
     squadra(Squadra2).
 
@@ -148,23 +158,38 @@ giornata(X) :- ritorno(X).
 % Ad assicurarsi che lo stadio sia ben impostato sono i vincoli "costruttivi"
 % di sopra, che dicono come deve essere fatto partita
 % qui ci limitiamo ad escludere istanze già fatte
-%* :- partita(Squadra1, Squadra2, Stadio, Giornata),
-partita(Squadra3, Squadra4, Stadio, Giornata). *%
+% in caso di derby c'è un solo record partita, quindi in teoria basta quello per escludere il caso dei derby
+:- partita(Squadra1, _, Stadio, Giornata),
+partita(Squadra2, _, Stadio, Giornata),
+squadra(Squadra1),
+squadra(Squadra2),
+Squadra1 != Squadra2.
 
 % Non più di due partite consecutive in casa
-%* :- partita(Squadra1, _, _, Giornata1),
+:- partita(Squadra1, _, _, Giornata1),
 partita(Squadra1, _, _, Giornata2),
 partita(Squadra1, _, _, Giornata3),
 Giornata2 == Giornata1 + 1,
-Giornata3 == Giornata2 + 1. *%
+Giornata3 == Giornata2 + 1.
 
 % Non più di due partite consecutive in trasferta
-%* :- partita(_, Squadra1, _, Giornata1),
-:- partita(_, Squadra1, _, Giornata2),
-:- partita(_, Squadra1, _, Giornata3),
+:- partita(_, Squadra1, _, Giornata1),
+partita(_, Squadra1, _, Giornata2),
+partita(_, Squadra1, _, Giornata3),
 Giornata2 == Giornata1 + 1,
-Giornata3 == Giornata2 + 1. *%
+Giornata3 == Giornata2 + 1.
 
 % Non ci devono essere più partite nello stesso stadio nella stessa giornata
 % fatto salvo per i derby
+
+% Conteggio numero di giornate girone
+numGiornateAndata(N) :- N = #count {X:andata(X)}.
+
+% Il calendario deve essere non simmetrico
+:- partita(Squadra1, Squadra2, _, GiornataAndata),
+partita(Squadra2, Squadra1, _, GiornataRitorno),
+numGiornateAndata(N),
+GiornataAndata == GiornataRitorno - N. 
+
+
 #show partita/4.
