@@ -1,0 +1,33 @@
+num_col(100).
+num_righe(100).
+iniziale(pos(2, 94)).
+finale(pos(98, 2)).
+finale(pos(85, 50)).
+finale(pos(73, 4)).
+finale(pos(99, 79)).
+occupata(pos(1, 86)).
+occupata(pos(1, 85)).
+occupata(pos(1, 84)).
+occupata(pos(1, 83)).
+occupata(pos(1, 82)).
+occupata(pos(1, 81)).
+occupata(pos(1, 80)).
+occupata(pos(1, 79)).
+occupata(pos(1, 78)).
+occupata(pos(2, 77)).
+occupata(pos(3, 76)).
+occupata(pos(4, 75)).
+occupata(pos(5, 74)).
+occupata(pos(6, 73)).
+occupata(pos(7, 72)).
+occupata(pos(8, 71)).
+occupata(pos(5, 97)).
+occupata(pos(6, 96)).
+occupata(pos(7, 96)).
+occupata(pos(8, 95)).
+occupata(pos(9, 94)).
+occupata(pos(11, 92)).
+occupata(pos(10, 93)).
+occupata(pos(12, 92)).
+occupata(pos(13, 91)).
+occupata(pos(14, 90)).
