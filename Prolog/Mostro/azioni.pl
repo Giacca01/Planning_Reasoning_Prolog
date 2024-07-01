@@ -1,3 +1,13 @@
+ostacoloMobile(pos(X, Y)) :- gemma(pos(X, Y)).
+
+ostacoloFisso(pos(X, Y)) :- 
+    ghiaccio(pos(X, Y)); 
+    occupata(pos(X, Y)).
+
+ostacolo(pos(X, Y)) :- 
+    ostacoloMobile(pos(X, Y));
+    ostacoloFisso(pos(X, Y)).
+
 % Condizioni di applicabilità delle singole azioni
 
 % Rispetto a prima, dove la mossa era ostacolata soltanto da muri infrangibili
@@ -9,46 +19,20 @@
 % iniziamo dando la modellazione più espressiva possibile
 % eventuali efficientamenti verranno dopo
 
-% Conviene metterla per prima, perchè la maggior parte degli ostacoli sarà fisso
-applicabile(nord, pos(R, C)) :-
-    R > 1,
-    RUp is R - 1,
-    \+occupata(pos(RUp, C)).
-
 % Condizioni di applicabilità spostamento a nord
+% Se non ci sono ostacoli, oppure se c'è del ghiaccio
+% ma io possiedo il martello, allora posso spostarmi
 applicabile(nord, pos(R, C)) :-
     R > 1,
     RUp is R - 1,
-    % Se c'è il muro di ghiaccio sicuramente la cella non può essere occupata
-    % da un muro infrangibile
-    %\+occupata(pos(RUp, C)),
-    % Posso spostarmi dove c'è un muro di ghiaccio solo se posseggo il martello
+    \+ostacolo(pos(RUp, C)),
+    !.
+
+applicabile(nord, pos(R, C)) :-
+    R > 1,
+    RUp is R - 1,
     ghiaccio(pos(RUp, C)),
-    \+ghiaccioRotto(pos(RUp, C)),
     possiedeMartello.
-
-
-% In una cella con gemme in realtà posso spostarmi sempre
-% perchè la gemma non ha condizioni di raccolta particolari
-/* applicabile(nord, pos(R, C)) :-
-    R > 1,
-    RUp is R - 1,
-    gemma(pos(RUp, C)),
-    \+gemmaRaccolta(pos(RUp, C)). */
-
-
-% Anche in una cella con martello posso spostarmi sempre
-% perchè non ci sono condizioni particolari per la raccolta
-/* applicabile(nord, pos(R, C)) :-
-    R > 1,
-    RUp is R - 1,
-    martello(pos(RUp, C)). */
-
-applicabile(nord, pos(R, C)) :-
-    R > 1,
-    RUp is R - 1,
-    % In una cella con avversario non posso muovermi mai
-    \+avversario(pos(RUp, C)).
 
 
 
@@ -57,21 +41,16 @@ applicabile(sud, pos(R, C)) :-
     num_righe(N),
     R < N,
     RDown is R + 1,
-    \+occupata(pos(RDown, C)).
+    \+ostacolo(pos(RDown, C)),
+    !.
 
 applicabile(sud, pos(R, C)) :-
     num_righe(N),
     R < N,
     RDown is R + 1,
     ghiaccio(pos(RDown, C)),
-    \+ghiaccioRotto(pos(RDown, C)),
     possiedeMartello.
 
-applicabile(sud, pos(R, C)) :-
-    num_righe(N),
-    R < N,
-    RDown is R + 1,
-    \+avversario(pos(RDown, C)).
 
 
 % Condizioni di applicabilità spostamento ad est
@@ -79,21 +58,15 @@ applicabile(est, pos(R, C)):-
     num_col(N),
     C < N,
     CRight is C + 1,
-    \+occupata(pos(R, CRight)).
+    \+ostacolo(pos(R, CRight)),
+    !.
 
 applicabile(est, pos(R, C)):-
     num_col(N),
     C < N,
     CRight is C + 1,
     ghiaccio(pos(R, CRight)),
-    \+ghiaccioRotto(pos(R, CRight)),
     possiedeMartello.
-
-applicabile(est, pos(R, C)):-
-    num_col(N),
-    C < N,
-    CRight is C + 1,
-    \+avversario(pos(R, CRight)).
 
 
 
@@ -101,19 +74,13 @@ applicabile(est, pos(R, C)):-
 applicabile(ovest, pos(R, C)):-
     C > 1,
     CLeft is C - 1,
-    \+occupata(pos(R, CLeft)).
+    \+ostacolo(pos(R, CLeft)).
 
 applicabile(ovest, pos(R, C)):-
     C > 1,
     CLeft is C - 1,
     ghiaccio(pos(R, CLeft)),
-    \+ghiaccioRotto(pos(R, CLeft)),
     possiedeMartello.
-
-applicabile(ovest, pos(R, C)):-
-    C > 1,
-    CLeft is C - 1,
-    \+avversario(pos(R, CLeft)).
 
 
 % effetto delle azioni sullo stato
@@ -130,27 +97,86 @@ trasforma(est, pos(R, C), pos(R, CDx)) :-
     % la verifica dell'applicabilità di un'azione corrisponda alla sua effettiva applicaziones
     ghiaccioRotto(pos(R, CDx)).
 
-% Conviene modellarlo come un fatto, perchè tanto
-% le ipotesi le ho già verificate.
-ghiaccioRotto(pos(R, C)).
-
-possiedeMartello(pos(R, C)).
-
-gemmaRaccolta(pos(R, C)).
 
 % Effetti del movimento ad Est
 trasforma(est, pos(R, C), pos(R, CDx)) :- 
-    % TODO:  Questo va modificato in modo che ci si sposti fino al primo ostacolo incontrato
-    % in più, tutti gli oggetti devono spostarsi nella stessa direzione
+    ghiaccio(pos())
 
     % Idea: con findAll recupero mostri, gemme ed ostacoli in ghiaccio
     % ed applico a tutti una regola trasforma che codica solo la componente di movimento
     % cioè la modifica della singola coordinata
     CDx is C + 1,
-    martello(pos(R, CDx)),
-    possiedeMartello(pos(R, CDx)).
+    % Recupero ostacoli sulla stessa riga, 
+    findAll(C1, ostacolo(pos(R, C1)), ListaOstacoliFissi),
+    MinOstacoloFisso is min(ListaOstacoliFissi),
+    % Le gemme che si trovano sulla stessa riga ma a destra del mostro
+    % vanno mosse prima e normalmente
+    findAll(pos(R1, G1), gemma(pos(R1, G1)), ListaGemme),
+    selezioneGemmeEst(ListaGemme, pos(R, C), GemmeDiffRiga, GemmeAfter, GemmeBefore),
+    spostaGemmeEst(GemmeAfter),
+    % TODO: implementare spostamento gemme che si trovano prima del mostro
+    % (In teoria basta spostare prima il mostro e poi trattarle come le altre)
 
-trasformaCoord(est, )
+    % Recupero gemme da spostare
+    findAll(pos(RG, CG), gemma(pos(RG, CG)), ListaGemme),
+
+    % Verifico se ci sia un martello da poter recuperare
+    checkMartello(pos(R, CDX)),
+
+    % Frantumo il ghiaccio in celle adiacenti
+
+checkMartello(pos(R, C)) :-
+    martello(pos(R, C)),
+    !,
+    retract(martello(pos(R, C))),
+    assert(possiedeMartello).
+
+checkMartello(pos(R, C)) :-
+    \+martello(pos(R, C)).
+
+
+frantumaGhiaccio(pos(R, C)) :-
+    ghiaccio(pos(R, C)),
+    possiedeMartello,
+    retract(ghiaccio(pos(R, C))).
+
+
+selezioneGemmeEst([], _, [], [], []).
+
+
+
+selezioneGemmeEst([pos(R, C)|TailOriginale], pos(RM, CM), GemmeDiffRiga, [C|ListAfter], ListBefore) :-
+    RM == R,
+    !,
+    C > CM,
+    !,
+    selezioneGemmeEst(TailOriginale, pos(RM, CM), GemmeDiffRiga, ListAfter, ListBefore).
+
+selezioneGemmeEst([pos(R, C)|TailOriginale], pos(RM, CM), GemmeDiffRiga, ListAfter, [C|ListBefore]) :-
+    RM == R,
+    !,
+    selezioneGemmeEst(TailOriginale, ColMostro, GemmeDiffRiga, ListAfter, ListBefore).
+
+selezioneGemmeEst([pos(R, C)|TailOriginale], pos(RM, CM), [GemmeDiffRiga], ListAfter, ListBefore) :-
+
+
+
+% Supponiamo che la lista di gemme sia ordinata in modo decrescente
+spostaGemmeEst([pos(R, C)]) :-
+    retract(gemma(pos(R, C))),
+    findAll(C1, ostacoloFisso(pos(R, C1)), ListaOstacoliFissi),
+    MinOstacoloFisso is min(ListaOstacoliFissi),
+    CDx is MinOstacoloFisso - 1,
+    assert(gemma(R, CDx)).
+
+spostaGemmeEst([pos(R, C)|ListaGemme]) :-
+    spostaGemmeEst(ListaGemme, PosLastGemma),
+    retract(gemma(pos(R, C))),
+    % Recupero ostacoli fissi sulla stessa riga
+    findAll(C1, ostacoloFisso(pos(R, C1)), ListaOstacoliFissi),
+    MinOstacoloFisso is min(ListaOstacoliFissi),
+    CDx is PosLastGemma - 1,
+    assert(gemma(pos(R, CDx))).
 
 
 trasforma(est, pos(R, C), pos(R, CDx)) :- 

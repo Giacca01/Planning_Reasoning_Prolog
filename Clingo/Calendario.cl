@@ -14,16 +14,18 @@ squadra(juventus).
 squadra(atalanta).
 squadra(bologna).
 squadra(roma).
-%squadra(lazio).
+squadra(lazio).
 squadra(fiorentina).
-%quadra(torino).
+squadra(torino).
 squadra(napoli).
 squadra(genoa).
 squadra(monza).
-%*squadra(verona).
+squadra(verona).
 squadra(lecce).
 squadra(udinese).
-squadra(cagliari). *%
+squadra(cagliari).
+% Squadre non richieste dal testo dell'esercizio
+
 
 % Definizione Città
 citta(milano).
@@ -35,10 +37,10 @@ citta(firenze).
 citta(napoli).
 citta(genova).
 citta(monza).
-%*citta(verona).
+citta(verona).
 citta(lecce).
 citta(udine).
-citta(cagliari). *%
+citta(cagliari).
 
 % Definizione Stadi
 stadio(sansiro).
@@ -46,15 +48,15 @@ stadio(allianz).
 stadio(gewiss).
 stadio(olimpicoRoma).
 stadio(dallara).
-%stadio(olimpicoTorino).
+stadio(olimpicoTorino).
 stadio(franchi).
 stadio(maradona).
 stadio(marassi).
 stadio(upower).
-%*stadio(bentegodi).
+stadio(bentegodi).
 stadio(viadelmare).
 stadio(friuli).
-stadio(unipol). *%
+stadio(unipol).
 
 % Associazioni
 associateA(milan, milano).
@@ -63,16 +65,16 @@ associateA(juventus, torino).
 associateA(atalanta, bergamo).
 associateA(bologna, bologna).
 associateA(roma, roma).
-%associateA(lazio, roma).
-%associateA(torino, torino).
+associateA(lazio, roma).
+associateA(torino, torino).
 associateA(genoa, genova).
 associateA(fiorentina, firenze).
 associateA(napoli, napoli).
 associateA(monza, monza).
-%*associateA(verona, verona).
+associateA(verona, verona).
 associateA(lecce, lecce). 
 associateA(udinese, udine).
-associateA(cagliari, cagliari)*%
+associateA(cagliari, cagliari).
 
 % Associazione Città-Squadre
 possessoStadio(sansiro, inter).
@@ -81,23 +83,23 @@ possessoStadio(allianz, juventus).
 possessoStadio(dallara, bologna).
 possessoStadio(gewiss, atalanta).
 possessoStadio(olimpicoRoma, roma).
-%possessoStadio(olimpicoRoma, lazio).
-%possessoStadio(olimpicoTorino, torino).
+possessoStadio(olimpicoRoma, lazio).
+possessoStadio(olimpicoTorino, torino).
 possessoStadio(franchi, fiorentina).
 possessoStadio(maradona, napoli).
 possessoStadio(marassi, genoa).
 possessoStadio(upower, monza).
-%*possessoStadio(bentegodi, verona).
+possessoStadio(bentegodi, verona).
 possessoStadio(viadelmare, lecce).
 possessoStadio(friuli, udinese).
-possessoStadio(unipol, cagliari). *%
+possessoStadio(unipol, cagliari).
 
 
 % Girone d'andata
-andata(1..9).
+andata(1..15).
 
 % Girone di ritorno
-ritorno(10..18).
+ritorno(16..30).
 
 giornata(X) :- andata(X).
 giornata(X) :- ritorno(X).

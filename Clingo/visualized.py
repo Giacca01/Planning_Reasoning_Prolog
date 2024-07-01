@@ -34,9 +34,9 @@ def load_clingo_output():
         tree2.delete(row)
         
     for game in games:
-        if 1 <= game[3] <= 9:
+        if 1 <= game[3] <= 15:
             tree1.insert("", tk.END, values=game)
-        elif 10 <= game[3] <= 18:
+        elif 16 <= game[3] <= 30:
             tree2.insert("", tk.END, values=game)
 
 # Create a Tkinter GUI
