@@ -8,13 +8,13 @@
 % Definizione dati problema
 
 % Definizione squadre
-squadra(inter).
-squadra(milan).
+%squadra(inter).
+%squadra(milan).
 squadra(juventus).
 squadra(atalanta).
 squadra(bologna).
 squadra(roma).
-squadra(lazio).
+%squadra(lazio).
 squadra(fiorentina).
 squadra(torino).
 squadra(napoli).
@@ -25,10 +25,14 @@ squadra(lecce).
 squadra(udinese).
 squadra(cagliari).
 % Squadre non richieste dal testo dell'esercizio
+squadra(empoli).
+squadra(frosinone).
+squadra(sassuolo).
+%squadra(salernitana).
 
 
 % Definizione Città
-citta(milano).
+%citta(milano).
 citta(torino).
 citta(bergamo).
 citta(roma).
@@ -41,9 +45,14 @@ citta(verona).
 citta(lecce).
 citta(udine).
 citta(cagliari).
+citta(empoli).
+citta(frosinone).
+citta(sassuolo).
+%citta(salerno).
+
 
 % Definizione Stadi
-stadio(sansiro).
+%stadio(sansiro).
 stadio(allianz).
 stadio(gewiss).
 stadio(olimpicoRoma).
@@ -57,15 +66,20 @@ stadio(bentegodi).
 stadio(viadelmare).
 stadio(friuli).
 stadio(unipol).
+stadio(castellani).
+stadio(stirpe).
+stadio(mapei).
+%stadio(arechi).
+
 
 % Associazioni
-associateA(milan, milano).
-associateA(inter, milano).
+%associateA(milan, milano).
+%associateA(inter, milano).
 associateA(juventus, torino).
 associateA(atalanta, bergamo).
 associateA(bologna, bologna).
 associateA(roma, roma).
-associateA(lazio, roma).
+%associateA(lazio, roma).
 associateA(torino, torino).
 associateA(genoa, genova).
 associateA(fiorentina, firenze).
@@ -75,15 +89,20 @@ associateA(verona, verona).
 associateA(lecce, lecce). 
 associateA(udinese, udine).
 associateA(cagliari, cagliari).
+associateA(empoli, empoli).
+associateA(frosinone, frosinone).
+associateA(sassuolo, sassuolo).
+%associateA(salernitana, salerno).
+
 
 % Associazione Città-Squadre
-possessoStadio(sansiro, inter).
-possessoStadio(sansiro, milan).
+%possessoStadio(sansiro, inter).
+%possessoStadio(sansiro, milan).
 possessoStadio(allianz, juventus).
 possessoStadio(dallara, bologna).
 possessoStadio(gewiss, atalanta).
 possessoStadio(olimpicoRoma, roma).
-possessoStadio(olimpicoRoma, lazio).
+%possessoStadio(olimpicoRoma, lazio).
 possessoStadio(olimpicoTorino, torino).
 possessoStadio(franchi, fiorentina).
 possessoStadio(maradona, napoli).
@@ -93,6 +112,10 @@ possessoStadio(bentegodi, verona).
 possessoStadio(viadelmare, lecce).
 possessoStadio(friuli, udinese).
 possessoStadio(unipol, cagliari).
+possessoStadio(castellani, empoli).
+possessoStadio(stirpe, frosinone).
+possessoStadio(mapei, sassuolo).
+%possessoStadio(arechi, salernitana).
 
 
 % Girone d'andata

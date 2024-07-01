@@ -86,151 +86,66 @@ applicabile(ovest, pos(R, C)):-
 % effetto delle azioni sullo stato
 % Rispetto a prima, serve modellare la raccolta dei collezionabili
 % cioè ghiaccio, gemme e martello
-trasforma(est, pos(R, C), pos(R, CDx)) :- 
+trasforma(est, pos(R, C), pos(R, CDxFin)) :- 
+    CDx is C + 1,
+    \+ostacolo(pos(R, CDx)),
+    applicabile(est, pos(R, CDx)),
+    trasforma(est, pos(R, CDx), pos(R, CDxFin)).
+
+% TODO: il primo applicabile ha testato una posizione diversa
+trasforma(est, pos(R, C), pos(R, CDxFin)) :-
     CDx is C + 1,
     ghiaccio(pos(R, CDx)),
-    % Non serve davvero ricontrollarlo, è una proprietà che c'è sicuramente
-    % altrimenti lo spostamento non sarebbe stato autorizzato in origine
-   % possiedeMartello,
-    % sono in grado di rompere il ghiaccio
-    % "attivo" il fatto solo ora perchè non è detto che
-    % la verifica dell'applicabilità di un'azione corrisponda alla sua effettiva applicaziones
-    ghiaccioRotto(pos(R, CDx)).
-
-
-% Effetti del movimento ad Est
-trasforma(est, pos(R, C), pos(R, CDx)) :- 
-    ghiaccio(pos())
-
-    % Idea: con findAll recupero mostri, gemme ed ostacoli in ghiaccio
-    % ed applico a tutti una regola trasforma che codica solo la componente di movimento
-    % cioè la modifica della singola coordinata
-    CDx is C + 1,
-    % Recupero ostacoli sulla stessa riga, 
-    findAll(C1, ostacolo(pos(R, C1)), ListaOstacoliFissi),
-    MinOstacoloFisso is min(ListaOstacoliFissi),
-    % Le gemme che si trovano sulla stessa riga ma a destra del mostro
-    % vanno mosse prima e normalmente
-    findAll(pos(R1, G1), gemma(pos(R1, G1)), ListaGemme),
-    selezioneGemmeEst(ListaGemme, pos(R, C), GemmeDiffRiga, GemmeAfter, GemmeBefore),
-    spostaGemmeEst(GemmeAfter),
-    % TODO: implementare spostamento gemme che si trovano prima del mostro
-    % (In teoria basta spostare prima il mostro e poi trattarle come le altre)
-
-    % Recupero gemme da spostare
-    findAll(pos(RG, CG), gemma(pos(RG, CG)), ListaGemme),
-
-    % Verifico se ci sia un martello da poter recuperare
-    checkMartello(pos(R, CDX)),
-
-    % Frantumo il ghiaccio in celle adiacenti
-
-checkMartello(pos(R, C)) :-
-    martello(pos(R, C)),
-    !,
-    retract(martello(pos(R, C))),
-    assert(possiedeMartello).
-
-checkMartello(pos(R, C)) :-
-    \+martello(pos(R, C)).
-
-
-frantumaGhiaccio(pos(R, C)) :-
-    ghiaccio(pos(R, C)),
     possiedeMartello,
-    retract(ghiaccio(pos(R, C))).
+    retract(ghiaccio(pos(R, CDx))),
+    CDxFin is CDx.
+    % TODO: Qui mi fermo oppure continuo a muovermi??
+
+trasforma(est, pos(R, C), pos(R, CDxFin)) :-
+    CDx is C + 1,
+    martello(pos(R, CDx)),
+    retract(martello(pos(R, CDx))),
+    assert(possiedeMartello),
+    CDxFin is CDx.
+    % TODO: Qui mi fermo oppure continuo a muovermi??
 
 
-selezioneGemmeEst([], _, [], [], []).
-
-
-
-selezioneGemmeEst([pos(R, C)|TailOriginale], pos(RM, CM), GemmeDiffRiga, [C|ListAfter], ListBefore) :-
-    RM == R,
-    !,
-    C > CM,
-    !,
-    selezioneGemmeEst(TailOriginale, pos(RM, CM), GemmeDiffRiga, ListAfter, ListBefore).
-
-selezioneGemmeEst([pos(R, C)|TailOriginale], pos(RM, CM), GemmeDiffRiga, ListAfter, [C|ListBefore]) :-
-    RM == R,
-    !,
-    selezioneGemmeEst(TailOriginale, ColMostro, GemmeDiffRiga, ListAfter, ListBefore).
-
-selezioneGemmeEst([pos(R, C)|TailOriginale], pos(RM, CM), [GemmeDiffRiga], ListAfter, ListBefore) :-
-
-
-
-% Supponiamo che la lista di gemme sia ordinata in modo decrescente
-spostaGemmeEst([pos(R, C)]) :-
-    retract(gemma(pos(R, C))),
-    findAll(C1, ostacoloFisso(pos(R, C1)), ListaOstacoliFissi),
-    MinOstacoloFisso is min(ListaOstacoliFissi),
-    CDx is MinOstacoloFisso - 1,
-    assert(gemma(R, CDx)).
-
-spostaGemmeEst([pos(R, C)|ListaGemme]) :-
-    spostaGemmeEst(ListaGemme, PosLastGemma),
-    retract(gemma(pos(R, C))),
-    % Recupero ostacoli fissi sulla stessa riga
-    findAll(C1, ostacoloFisso(pos(R, C1)), ListaOstacoliFissi),
-    MinOstacoloFisso is min(ListaOstacoliFissi),
-    CDx is PosLastGemma - 1,
-    assert(gemma(pos(R, CDx))).
-
-
-trasforma(est, pos(R, C), pos(R, CDx)) :- 
+trasforma(est, pos(R, C), pos(R, CDxFin)) :-
     CDx is C + 1,
     gemma(pos(R, CDx)),
-    gemmaRaccolta(pos(R, CDx)).
+    % Movimento della gemma incontrata, in modo da mantenere ordine relativo
+    muoviGemma(est, pos(R, CDx), pos(R, CDx), pos(R, C), pos(R, CFinGemma)),
+    % L'agente si sposta nella cella precedente la gemma
+    CDxFin is CFinGemma - 1,
+    % Sposto tutte le altre gemme, stando attento a non sbattere nell'agente
+    findAll(pos(R1, G1), gemma(pos(R1, G1)), ListaGemme),
+    spostaGemme(ListaGemme, est, pos(R, CDxFin)).
 
 
-% Effetti del movimento ad ovest
-trasforma(ovest, pos(R, C), pos(R, CSx)) :-
-    CSx is C - 1,
-    martello(pos(R, CSx)),
-    possiedeMartello(pos(R, CSx)).
+% direzione, posizione iniziale gemma, lastPos, pos agente, posizione finale gemma
+muoviGemma(est, pos(R, CIn), pos(RLast, CLast),  pos(RAgente, CAgente), pos(R, Cfin)) :-
+    CNew is CLast + 1,
+    R \== RAgente,
+    CAgente \== CNew,
+    \+ostacolo(pos(R, CNew)),
+    muoviGemma(est, pos(R, CIn), pos(RLast, CNew), pos(RAgente, CAgente), pos(R, Cfin)).
 
-trasforma(ovest, pos(R, C), pos(R, CSx)) :-
-    CSx is C - 1,
-    gemma(pos(R, CSx)),
-    gemmaRaccolta(pos(R, CSx)).
+muoviGemma(est, pos(R, CIn), pos(RLast, CLast), pos(RAgente, CAgente), pos(R, Cfin)) :-
+    CNew is CIn + 1,
+    gemma(pos(R, CNew)),
+    !,
+    muoviGemma(est, pos(R, CNew), pos(R, CNew), pos(RAgente, CAgente), pos(RFinG, CFinG)),
+    retract(gemma(pos(R, CIn))),
+    Cfin is CFinG - 1,
+    assert(gemma(pos(R, Cfin))).
 
-trasforma(ovest, pos(R, C), pos(R, CSx)) :-
-    CSx is C - 1,
-    ghiaccio(pos(R, CSx)),
-    ghiaccioRotto(pos(R, CSx)).
-
-
-% Effetto del movimento a nord
-trasforma(nord, pos(R, C), pos(RUp, C)) :-
-    RUp is R - 1,
-    martello(pos(RUp, C)),
-    possiedeMartello(pos(RUp, C)).
-
-trasforma(nord, pos(R, C), pos(RUp, C)) :-
-    RUp is R - 1,
-    gemma(pos(RUp, C)),
-    gemmaRaccolta(pos(RUp, C)).
-
-trasforma(nord, pos(R, C), pos(RUp, C)) :-
-    RUp is R - 1,
-    ghiaccio(pos(RUp, C)),
-    ghiaccioRotto(pos(RUp, C)).
+muoviGemma(_, pos(RIn, CIn), pos(RLast, CLast), pos(RAgente, CAgente), pos(RIn, CIn)) :-
+    retract(gemma(pos(RIn, CIn))),
+    assert(gemma(pos(RLast, CLast))).
 
 
-% Effetto del movimento a sud
-trasforma(sud, pos(R, C), pos(RDown, C)) :-
-    RDown is R + 1,
-    martello(pos(RDown, C)),
-    possiedeMartello(pos(RDown, C)).
 
-trasforma(sud, pos(R, C), pos(RDown, C)) :-
-    RDown is R + 1,
-    gemma(pos(RDown, C)),
-    gemmaRaccolta(pos(RDown, C)).
+spostaGemme([], _, _, _).
+spostaGemme([Gemma|Tail], est, pos(RAgente, CAgente)) :-
+    muoviGemma(est, Gemma, Gemma, pos(RAgente, CAgente), _).
 
-trasforma(sud, pos(R, C), pos(RDown, C)) :-
-    RDown is R + 1,
-    ghiaccio(pos(RDown, C)),
-    ghiaccioRotto(pos(RDown, C)).
