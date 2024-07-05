@@ -34,6 +34,14 @@ applicabile(nord, pos(R, C)) :-
     ghiaccio(pos(RUp, C)),
     possiedeMartello.
 
+% Se c'è la gemma posso comunque spostarmi, perchè anche lei si muoverà
+% male che vada, la gemma non può spostarsi, quindi lanciando trasforma
+% non si sposta nemmeno lui
+applicabile(nord, pos(R, C)) :-
+    R > 1,
+    RUp is R - 1,
+    gemma(pos(RUp, C)).
+
 
 
 % Condizioni di applicabilità spostamento a sud
@@ -50,6 +58,12 @@ applicabile(sud, pos(R, C)) :-
     RDown is R + 1,
     ghiaccio(pos(RDown, C)),
     possiedeMartello.
+
+applicabile(sud, pos(R, C)) :-
+    num_righe(N),
+    R < N,
+    RDown is R + 1,
+    gemma(pos(RDown, C)).
 
 
 
@@ -68,6 +82,12 @@ applicabile(est, pos(R, C)):-
     ghiaccio(pos(R, CRight)),
     possiedeMartello.
 
+applicabile(est, pos(R, C)):-
+    num_col(N),
+    C < N,
+    CRight is C + 1,
+    gemma(pos(R, CRight)).
+
 
 
 % Condizioni di applicabilità spostamento ad ovest
@@ -82,37 +102,50 @@ applicabile(ovest, pos(R, C)):-
     ghiaccio(pos(R, CLeft)),
     possiedeMartello.
 
+applicabile(ovest, pos(R, C)):-
+    C > 1,
+    CLeft is C - 1,
+    gemma(pos(R, CLeft)).
+
 
 % effetto delle azioni sullo stato
 % Rispetto a prima, serve modellare la raccolta dei collezionabili
 % cioè ghiaccio, gemme e martello
-trasforma(est, pos(R, C), pos(R, CDxFin)) :- 
-    CDx is C + 1,
-    \+ostacolo(pos(R, CDx)),
-    applicabile(est, pos(R, CDx)),
-    trasforma(est, pos(R, CDx), pos(R, CDxFin)).
 
-% TODO: il primo applicabile ha testato una posizione diversa
 trasforma(est, pos(R, C), pos(R, CDxFin)) :-
     CDx is C + 1,
+    % non è molto efficiente, però riciclo il controllo sui bound
+    applicabile(est, pos(R, CDx)),
     ghiaccio(pos(R, CDx)),
+    !,
     possiedeMartello,
     retract(ghiaccio(pos(R, CDx))),
     CDxFin is CDx.
-    % TODO: Qui mi fermo oppure continuo a muovermi??
 
 trasforma(est, pos(R, C), pos(R, CDxFin)) :-
     CDx is C + 1,
+    % Se c'è il martello è sicuramente applicabile
+    % anche qui, testare applicabile serve a fare il controllo sui bound
+    applicabile(est, pos(R, CDx)),
     martello(pos(R, CDx)),
+    !,
     retract(martello(pos(R, CDx))),
     assert(possiedeMartello),
     CDxFin is CDx.
-    % TODO: Qui mi fermo oppure continuo a muovermi??
+
+trasforma(est, pos(R, C), pos(R, CDxFin)) :- 
+    CDx is C + 1,
+    applicabile(est, pos(R, CDx)),
+    !,
+    trasforma(est, pos(R, CDx), pos(R, CDxFin)).
 
 
 trasforma(est, pos(R, C), pos(R, CDxFin)) :-
     CDx is C + 1,
+    % Se arrivo qui, so che sicuramente l'azione è non applicabile
+    % ma non è detto lo sia per colpa della gemma, potrebbe derivare dai bounds
     gemma(pos(R, CDx)),
+    !,
     % Movimento della gemma incontrata, in modo da mantenere ordine relativo
     muoviGemma(est, pos(R, CDx), pos(R, CDx), pos(R, C), pos(R, CFinGemma)),
     % L'agente si sposta nella cella precedente la gemma

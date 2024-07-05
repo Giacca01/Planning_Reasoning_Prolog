@@ -1,57 +1,69 @@
-% Calcolare soglia massima minimo
-
 ricerca(CamminoFinale) :-
     iniziale(S0),
     euristica(S0, Soglia),
     NumeroTentativi is Soglia * 2,
-    ida(S0, [], [], Soglia, 500, NewMinimo, CamminoCorrente, UltimoStato),
-    fine(NewMinimo, UltimoStato, CamminoCorrente, CamminoInverso, NumeroTentativi),
+    ida_driver(S0, [], [S0], Soglia, NumeroTentativi, CamminoInverso),
     inverti(CamminoInverso, CamminoFinale).
 
-fine(NuovaSoglia, UltimoStato, CamminoCorrente, CamminoCorrente, NumeroTentativi) :-
-    finale(UltimoStato),
-    !.
 
-fine(NuovaSoglia, UltimoStato, _, CamminoFinale, NumeroTentativi, MaxVal) :-
-   % \+finale(UltimoStato),
+ida_driver(S0, Cammino, Visitati, Soglia, NumeroTentativi, CamminoInverso) :-
     NumeroTentativi > 0,
-    !,
-    iniziale(S0),
-    euristica(S0, Soglia),
-    !,
-    ida(S0, [], [], NuovaSoglia, 500, NewMinimo, CamminoCorrente, StatoFin),
-    NewNumTentativi is NumeroTentativi - 1,
-    fine(NewMinimo, StatoFin, CamminoCorrente, CamminoFinale, NewNumTentativi).
-
-
-
-
-ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, CamminoCorrente, S) :-
-    \+member(S, Visitati),
-    length(Cammino, CostoEffettivo),
-    euristica(S, StimaCosto),
-    StimaTotale is CostoEffettivo + StimaCosto,
-    StimaTotale > Soglia,
-    NewMinimo is min(StimaTotale, Minimo),
+    % Iterazione i-esima
+    ida(S0, Cammino, Visitati, Soglia, CamminoInverso, 0),
+    % Se l'iterazione ha successo, non c'è bisogno di considerare l'applicazione di altre regole
     !.
+
+ida_driver(S0, Cammino, Visitati, Soglia, NumeroTentativi, CamminoInverso) :-
+    NumeroTentativi > 0,
+    % Se arrivo qui, l'iterazione i-esimo non è andata a buon fine
+
+    % Recupero le stime di costo prodotte durante l'iteazione i-esima
+    findall(StimaCosto, (soglia(S, StimaCosto), isGreater(StimaCosto, Soglia)), StimeMaggiori),
+   % exclude(>=(Soglia), ListaStime, ListaOltreSoglia),
+    min_list(StimeMaggiori, NuovaSoglia),
+    % Indispensabile, altrimenti tutte le iterazioni successive continueranno ad usare
+    % la soglia della prima. Inoltre, così ci sono meno fatti da recupera con findAll
+    retractall(soglia(_, _)),
+    % Inizio iterazione i+1-esima
+    NewNumeroTentativi is NumeroTentativi - 1,
+    ida_driver(S0, Cammino, Visitati, NuovaSoglia, NewNumeroTentativi, CamminoInverso).
+% Non serve mettere altri cut, tanto non ci sono altre regole da provare
+
+
+isGreater(Stima, Soglia) :-
+    Stima > Soglia.
 
 % Se lo stato è già stato visitato non ho regole da applicare e quindi fallisco
-ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, Cammino, S):-
+ida(S, Cammino, Visitati, Soglia, Cammino, _):-
     % lo stato corrente è entro il limite: procediamo con la valutazione
-    \+member(S, Visitati),
+
+    % Inutile: è una ricerca in profondità, non può essere che io trovi
+    % due stati finali, al primo mi fermo
+    % \+member(S, Visitati),
     finale(S),
     % Ultima iterazione dell'algoritmo
     !.
 
-ida(S, Cammino, Visitati, Soglia, Minimo, NewMinimo, CamminoFinale, SFinale):-
-    \+member(S, Visitati),
+ida(S, Cammino, Visitati, Soglia, CamminoInverso, CostoAttuale):-
     % Genero i nodi figli
     applicabile(Az, S),
     trasforma(Az, S, SNuovo),
-    ida(SNuovo, [Az|Cammino], [S|Visitati], Soglia, Minimo, NewMinimo, CamminoFinale, SFinale).
+    \+member(SNuovo, Visitati),
+    euristica(SNuovo, StimaCosto),
+    NewCostoAttuale is CostoAttuale + 1,
+    StimaTotale is CostoAttuale + StimaCosto + 1,
+    % Salvo il valore della funzione F per il nodo corrente
+    % in modo da poter recuperare il minimo dei valori fuori soglia all'iterazione i
+    % che costituirà la soglia all'iterazione i + 1
+    assert(soglia(S, StimaTotale)),
+    % Se il nodo corrente supera la soglia, l'applicazione di questa regola fallisce
+    % e, di conseguenza, tutta la catena di chiamate
+    StimaTotale =< Soglia,
+    ida(SNuovo, [Az|Cammino], [SNuovo|Visitati], Soglia, CamminoInverso, NewCostoAttuale).
 
 % Se il nodo fa già parte del path non ci sono regole applicabili
 % quindi la ricerca fallisce e si passa al successivo
+% anche qui, non servono dei cut, tanto non ci sono altre regole applicabili
 
 
 euristica(pos(R1, C1), Result) :-
