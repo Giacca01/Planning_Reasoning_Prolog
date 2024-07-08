@@ -2,7 +2,7 @@ num_col(80).
 num_righe(80).
 iniziale(pos(6, 29)).
 finale(pos(78, 4)).
-finale(pos(42, 57)).
+finale(pos(78, 57)).
 occupata(pos(76, 3)).
 occupata(pos(76, 4)).
 occupata(pos(76, 5)).

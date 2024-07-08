@@ -3,6 +3,7 @@ num_righe(30).
 iniziale(pos(1, 15)).
 finale(pos(11, 5)).
 finale(pos(10, 28)).
+finale(pos(14, 19)).
 occupata(pos(7, 4)).
 occupata(pos(7, 3)).
 occupata(pos(7, 5)).

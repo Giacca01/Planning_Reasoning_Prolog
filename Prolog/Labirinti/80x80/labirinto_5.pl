@@ -4,7 +4,6 @@ iniziale(pos(2, 77)).
 finale(pos(60, 20)).
 finale(pos(63, 72)).
 finale(pos(75, 19)).
-finale(pos(78, 63)).
 occupata(pos(5, 77)).
 occupata(pos(5, 76)).
 occupata(pos(5, 75)).

@@ -1,7 +1,7 @@
 ricerca(CamminoFinale) :-
     iniziale(S0),
     euristica(S0, Soglia),
-    NumeroTentativi is Soglia * 2,
+    NumeroTentativi is Soglia / 2,
     ida_driver(S0, [], [S0], Soglia, NumeroTentativi, CamminoInverso),
     inverti(CamminoInverso, CamminoFinale).
 

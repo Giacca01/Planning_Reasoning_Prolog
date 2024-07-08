@@ -31,7 +31,6 @@ astar([[S, Cammino, StimaCosto]|Open], Closed, Risultato) :-
     astar(OpenModified, ClosedModified, Risultato).
 
     
-% TODO: vedere se questo cut serva effettivamente a qualcosa
 generaNuoviStati(_, [], []) :- !.
 generaNuoviStati([S, Cammino, StimaCosto], [Az|Tail], [[SNuovo, [Az|Cammino], StimaNuovoCosto]|NuoviStati]) :-
     trasforma(Az, S, SNuovo),
@@ -60,7 +59,6 @@ valutaStati([[NuovoStato, Cammino, StimaCosto]|NuoviStati], Open, NewOpen, Close
     findCost(Open, NuovoStato, CostoCorrente),
     StimaCosto < CostoCorrente,
     select([NuovoStato, _, CostoCorrente], Open, TmpOpen),
-    % Non Corretto
     insertOrdered(NuovoStato, StimaCosto, Cammino, TmpOpen, AuxOpen),
     valutaStati(NuoviStati, AuxOpen, NewOpen, Closed, NewClosed).
 
