@@ -1,6 +1,7 @@
 num_col(8).
 num_righe(8).
 iniziale(pos(5, 4)).
+mostro(pos(5, 4)).
 finale(pos(5, 2)).
 occupata(pos(1, 3)).
 occupata(pos(2, 6)).

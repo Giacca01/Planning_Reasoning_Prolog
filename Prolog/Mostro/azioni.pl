@@ -1,248 +1,319 @@
-:- dynamic possiedeMartello/0.
-:- dynamic martello/1.
-:- dynamic ghiaccio/1.
-:- dynamic gemma/1.
-:- dynamic mostro/1.
-
-% Condizioni di applicabilità spostamento ad est
-/* applicabile(est, pos(R, C)):-
-    num_col(N),
-    C < N,
-    CRight is C + 1,
-    \+occupata(pos(R, CRight)),
-    (\+ghiaccio(pos(R, CRight)); possiedeMartello),
-    (\+gemma(pos(R, CRight)); applicabileGemma(est, pos(R, CRight))). */
-
-
 % Condizioni di applicabilità spostamento ad ovest
-/* applicabile(ovest, pos(R, C)):-
+applicabile(ovest, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]):-
     C > 1,
     CLeft is C - 1,
     \+occupata(pos(R, CLeft)),
-    (\+ghiaccio(pos(R, CLeft)); possiedeMartello),
-    (\+gemma(pos(R, CLeft)); applicabileGemma(ovest, pos(R, CLeft))). */
+    controlloGhiaccio(pos(R, CLeft), ListaMuriGhiaccio, ListaMartello),
+    controlloGemma(ovest, pos(R, CLeft), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
 
 % Condizioni di applicabilità spostamento a sud
-applicabile(sud, pos(R, C)):-
+applicabile(sud, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]):-
     num_righe(N),
     R < N,
     RDown is R + 1,
     \+occupata(pos(RDown, C)),
-    (\+ghiaccio(pos(RDown, C)); possiedeMartello),
-    (\+gemma(pos(RDown, C)); applicabileGemma(sud, pos(RDown, C))).
+    controlloGhiaccio(pos(RDown, C), ListaMuriGhiaccio, ListaMartello),
+    controlloGemma(sud, pos(RDown, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
 
 % Condizioni di applicabilità spostamento a nord
-applicabile(nord, pos(R, C)):-
+applicabile(nord, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]):-
     R > 1,
     RUp is R - 1,
     \+occupata(pos(RUp, C)),
-    (\+ghiaccio(pos(RUp, C)); possiedeMartello),
-    (\+gemma(pos(RUp, C)); applicabileGemma(nord, pos(RUp, C))).
+    controlloGhiaccio(pos(RUp, C), ListaMuriGhiaccio, ListaMartello),
+    controlloGemma(nord, pos(RUp, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
+
+% Condizioni di applicabilità spostamento ad est
+applicabile(est, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]):-
+    num_col(N),
+    C < N,
+    CRight is C + 1,
+    \+occupata(pos(R, CRight)),
+    controlloGhiaccio(pos(R, CRight), ListaMuriGhiaccio, ListaMartello),
+    controlloGemma(est, pos(R, CRight), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
+
+
+controlloGhiaccio(NuovaPos, ListaMuriGhiaccio, ListaMartello) :-
+    \+member(ghiaccio(NuovaPos), ListaMuriGhiaccio),
+    !.
+% Nella posizione di arrivo c'è un muro di ghiaccio, quindi l'agente deve avere il martello
+controlloGhiaccio(NuovaPos, ListaMuriGhiaccio, [possiedeMartello]).
+    
+% Nella Posizione di arrivo non ci devono essere gemme, oppure devono essere spostabili
+controlloGemma(Direzione, NuovaPos, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme) :-
+    \+member(gemma(NuovaPos), ListaGemme),
+    !.
+controlloGemma(Direzione, NuovaPos, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme) :-
+    applicabileGemma(Direzione, NuovaPos, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
+
+
+
+
+
+
+
 
 
 
 
 % Condizioni di spostamento della gemma ad est
-/* applicabileGemma(est, pos(R, C)):-
+% TODO: controllare se la posizione del mostro sia corretta
+% Qui pos(R, C) è la posizione della gemma
+applicabileGemma(est, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme):-
     num_col(N),
     C < N,
     CRight is C + 1,
     \+occupata(pos(R, CRight)),
-    \+ghiaccio(pos(R, CRight)),
+    % Verifica esistenza muro
+    \+member(ghiaccio(pos(R, CRight)), ListaMuriGhiaccio),
     \+finale(pos(R, CRight)),
-    \+mostro(pos(R, CRight)),
-    !,
-    (\+gemma(pos(R, CRight));
-        % Se c'è la gemma devo poterla spostare
-        applicabileGemma(est, pos(R, CRight))
-    ). */
+    % Verifico che la gemma non sbatta contro il mostro
+    pos(R, CRight) \= PosMostro,
+    controlloGemma(est, pos(R, CRight), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
 % Condizioni di spostamento della gemma ad ovest
-/* applicabileGemma(ovest, pos(R, C)):-
+applicabileGemma(ovest, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme):-
     C > 1,
     CLeft is C - 1,
     \+occupata(pos(R, CLeft)),
-    \+ghiaccio(pos(R, CLeft)),
+    \+member(ghiaccio(pos(R, CLeft)), ListaMuriGhiaccio),
     \+finale(pos(R, CLeft)),
-    \+mostro(pos(R, CLeft)),
-    !,
-    (\+gemma(pos(R, CLeft));
-        % Se c'è la gemma devo poterla spostare
-        applicabileGemma(ovest, pos(R, CLeft))
-    ). */
+    pos(R, CLeft) \= PosMostro,
+    controlloGemma(ovest, pos(R, CLeft), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
 
 % Condizioni di spostamento della gemma a sud
-applicabileGemma(sud, pos(R, C)):-
+applicabileGemma(sud, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme):-
     num_righe(N),
     R < N,
     RDown is R + 1,
     \+occupata(pos(RDown, C)),
-    \+ghiaccio(pos(RDown, C)),
+    \+member(ghiaccio(pos(RDown, C)), ListaMuriGhiaccio),
     \+finale(pos(RDown, C)),
-    \+mostro(pos(RDown, C)),
-    !,
-    (\+gemma(pos(RDown, C));
-        % Se c'è la gemma devo poterla spostare
-        applicabileGemma(sud, pos(RDown, C))
-    ).
+    pos(RDown, C) \= PosMostro,
+    controlloGemma(sud, pos(RDown, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
 
 % Condizioni di spostamento della gemma a nord
-applicabileGemma(nord, pos(R, C)):-
+applicabileGemma(nord, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme):-
     R > 1,
     RUp is R - 1,
     \+occupata(pos(RUp, C)),
-    \+ghiaccio(pos(RUp, C)),
+    \+member(ghiaccio(pos(RUp, C)), ListaMuriGhiaccio),
     \+finale(pos(RUp, C)),
-    \+mostro(pos(RUp, C)),
-    !,
-    (\+gemma(pos(RUp, C));
-        % Se c'è la gemma devo poterla spostare
-        applicabileGemma(sud, pos(RUp, C))
+    pos(RUp, C) \= PosMostro,
+    controlloGemma(nord, pos(RUp, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
+
+
+
+
+% Driver dello spostamento di n passi, da pos(R, C) a pos(R, CFin)
+trasforma(
+    Direzione, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+) :-
+    % Spostamento da n passi
+    trasformaMultiStep(
+        Direzione, 
+        [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+        [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, TmpListaGemme]
+    ),
+    % Spostamento delle gemme
+    spostaListaGemme(TmpListaGemme, Direzione, pos(RFin, CFin), ListaMuriGhiaccio, ListaMartello, NewListaGemme).
+
+
+
+
+
+% Spostamento di n passi in direzione est, da pos(R, C) a pos(RFin, CFin)
+trasformaMultiStep(est, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+) :-
+    NewC is C + 1,
+    % effetti dello Spostamento di una posizione
+    spostamento(
+        est, 
+        [pos(R, NewC), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme] ,
+        % Modifica dello stato derivante dal singolo passo di spostamento
+        [pos(R, NewC), pos(R, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme]
+    ),
+    % Chiamata ricorsiva per continuare il movimento
+    continuaSpostamento(
+        est, 
+        [pos(R, NewC), pos(R, NewC), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme],
+        [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+    ).
+
+% Spostamento di n passi in direzione ovest, da pos(R, C) a pos(RFin, CFin)
+trasformaMultiStep(ovest, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+) :-
+    NewC is C - 1,
+    % Spostamento di una posizione
+    spostamento(
+        ovest, 
+        [pos(R, NewC), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme] ,
+        % Modifica dello stato derivante dal singolo passo di spostamento
+        [pos(R, NewC), pos(R, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme]
+    ),
+    % Chiamata ricorsiva per continuare il movimento
+    continuaSpostamento(
+        ovest, 
+        [pos(R, NewC), pos(R, NewC), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme],
+        [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+    ).
+
+% Spostamento di n passi in direzione sud, da pos(R, C) a pos(RFin, CFin)
+trasformaMultiStep(sud, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+) :-
+    NewR is R + 1,
+    % Spostamento di una posizione
+    spostamento(
+        sud, 
+        [pos(NewR, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme] ,
+        % Modifica dello stato derivante dal singolo passo di spostamento
+        [pos(NewR, C), pos(R, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme]
+    ),
+    % Chiamata ricorsiva per continuare il movimento
+    continuaSpostamento(
+        sud, 
+        [pos(NewR, C), pos(NewR, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme],
+        [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+    ).
+
+% Spostamento di n passi in direzione norc, da pos(R, C) a pos(RFin, CFin)
+trasformaMultiStep(nord, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+) :-
+    NewR is R - 1,
+    % Modifiche derivanti dallo Spostamento di una posizione
+    spostamento(
+        nord, 
+        [pos(NewR, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme] ,
+        % Modifica dello stato derivante dal singolo passo di spostamento
+        [pos(NewR, C), pos(R, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme]
+    ),
+    % Chiamata ricorsiva per continuare il movimento
+    continuaSpostamento(
+        nord, 
+        [pos(NewR, C), pos(NewR, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme],
+        [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
+    ).
+
+% Se la mossa non è ulteriormente applicabile lo stato ovviamente non cambia
+continuaSpostamento(Direzione, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme],
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]) :-
+    \+applicabile(Direzione, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]),
+    !.
+
+continuaSpostamento(Direzione, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme],
+    [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]) :-
+    trasformaMultiStep(
+        Direzione, 
+        [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme] ,
+        [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
     ).
 
 
-% effetto delle azioni sullo stato
-% Rispetto a prima, serve modellare la raccolta dei collezionabili
-% cioè ghiaccio, gemme e martello
-
-% Driver dello spostamento di n passi, da pos(R, C) a pos(R, CFin)
-trasforma(Direzione, pos(R, C), pos(R, CFin)) :-
-    trasformaMultiStep(Direzione, pos(R, C), pos(R, CFin)),
-    retract(mostro(pos(R, C))),
-    assert(mostro(pos(R, CFin))),
-    findall(pos(RG, CG), gemma(pos(RG, CG)), ListaPosizioniGemme),
-    spostaListaGemme(ListaPosizioniGemme, Direzione).
-
-% Spostamento di n passi in direzione est, da pos(R, C) a pos(R, CFin)
-/* trasformaMultiStep(est, pos(R, C), pos(R, CFin)) :-
-    NewC is C + 1,
-    % Spostamento di una posizione
-    spostamento(est, pos(R, C), pos(R, NewC)),
-    !,
-    % Chiamata ricorsiva per continuare il movimento
-    (\+applicabile(est, pos(R, NewC)), CFin is NewC;
-    trasformaMultiStep(est, pos(R, NewC), pos(R, CFin))). */
-
-% Spostamento di n passi in direzione ovest, da pos(R, C) a pos(R, CFin)
-/* trasformaMultiStep(ovest, pos(R, C), pos(R, CFin)) :-
-    NewC is C - 1,
-    % Spostamento di una posizione
-    spostamento(ovest, pos(R, C), pos(R, NewC)),
-    !,
-    % Chiamata ricorsiva per continuare il movimento
-    (\+applicabile(ovest, pos(R, NewC)), CFin is NewC;
-    trasformaMultiStep(ovest, pos(R, NewC), pos(R, CFin))). */
-
-% Spostamento di n passi in direzione sud, da pos(R, C) a pos(R, CFin)
-trasformaMultiStep(sud, pos(R, C), pos(RFin, C)) :-
-    NewR is R + 1,
-    % Spostamento di una posizione
-    spostamento(sud, pos(R, C), pos(NewR, C)),
-    !,
-    % Chiamata ricorsiva per continuare il movimento
-    (\+applicabile(sud, pos(NewR, C)), RFin is NewR;
-    trasformaMultiStep(sud, pos(NewR, C), pos(RFin, C))).
-
-% Spostamento di n passi in direzione nord, da pos(R, C) a pos(RFin, C)
-trasformaMultiStep(nord, pos(R, C), pos(RFin, C)) :-
-    NewR is R - 1,
-    % Spostamento di una posizione
-    spostamento(nord, pos(R, C), pos(NewR, C)),
-    !,
-    % Chiamata ricorsiva per continuare il movimento
-    (\+applicabile(nord, pos(NewR, C)), RFin is NewR;
-    trasformaMultiStep(nord, pos(NewR, C), pos(RFin, C))).
-
-
-
-
-spostamento(_, pos(RCurr, CCurr), pos(NewR, NewC)) :-
+spostamento(_, 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(NewR, NewC), PosMostro, NewListaMuriGhiaccio, ListaMartello, ListaGemme]) :-
     % L'algoritmo che chiama trasforma ha verificato che la mossa sia applicabile soltanto ad un passo
     % implementare trasforma in modo che verifichi tutti gli n passi sarebbe troppo costoso
-    ghiaccio(pos(NewR, NewC)),
+    member(ghiaccio(pos(NewR, NewC)), ListaMuriGhiaccio),
     !,
-    retract(ghiaccio(pos(NewR, NewC))).
+    select(ghiaccio(pos(NewR, NewC)), ListaMuriGhiaccio, NewListaMuriGhiaccio).
 
-spostamento(Direzione, pos(RCurr, CCurr), pos(NewR, NewC)) :-
+
+spostamento(
+    Direzione, 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme]) :-
     % Se incontro una gemma, la faccio avanzare fino al prossimo ostacolo
     % prima di spostare il mostro, in modo da preservare il posizionamento relativo
-    gemma(pos(NewR, NewC)),
+    member(gemma(pos(NewR, NewC)), ListaGemme),
     !,
-    applicabileGemma(Direzione, pos(R, NewC)),
-    spostaGemma(Direzione, pos(NewR, NewC)).
+    applicabileGemma(Direzione, pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme),
+    spostaGemma(Direzione, pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme).
 
-spostamento(_, pos(RCurr, CCurr), pos(NewR, NewC)) :-
-    martello(pos(NewR, NewC)),
-    !,
-    retract(martello(pos(NewR, NewC))),
-    assert(possiedeMartello).
+spostamento(_, 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, [martello(pos(NewR, NewC))], ListaGemme], 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, [possiedeMartello], ListaGemme]).
 
-% Di base, se supero la verifica di appliabilità, il movimento ha successo
-spostamento(_, pos(RCurr, CCurr), pos(NewR, NewC)).
+
+% Caso in cui non ci sono collezionabili particolari da trattare in posizione
+% pos(NewR, NewC). Il mostro può dirigervisi senza accorgimenti particolari
+spostamento(_, 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme], 
+    [pos(NewR, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme]).
 
 
 % Singolo passo di spostamento della gemma verso est
-/* spostaGemma(est, pos(R, C)) :-
+spostaGemma(est, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
     NewC is C + 1,
-    (
-        \+gemma(pos(R, NewC));
-        spostaGemma(est, pos(R, NewC))
-    ),
-    retract(gemma(pos(R, C))),
-    assert(gemma(pos(R, NewC))),
-    (\+applicabileGemma(est, pos(R, NewC));
-    spostaGemma(est, pos(R, NewC))). */
-
+    % Verifico se nella posizione di arrivo ci sia un'altra gemma
+    % Se c'è ed è possbile, la sposto
+    controlloAltraGemma(est, pos(R, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, TmpListaGemme1),
+    % Tolgo la gemma dalla posizione corrente
+    select(gemma(pos(R, C)), TmpListaGemme1, TmpListaGemme2),
+    % Aggiungo la gemma nella nuova posizione
+    continuaSpostamentoGemma(est, pos(R, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(R, NewC))|TmpListaGemme2], NewListaGemme).
 
 % Singolo passo di spostamento della gemma verso ovest
-/* spostaGemma(ovest, pos(R, C)) :-
+spostaGemma(ovest, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
     NewC is C - 1,
-    (
-        \+gemma(pos(R, NewC));
-        spostaGemma(ovest, pos(R, NewC))
-    ),
-    retract(gemma(pos(R, C))),
-    assert(gemma(pos(R, NewC))),
-    (\+applicabileGemma(ovest, pos(R, NewC));
-    spostaGemma(ovest, pos(R, NewC))). */
+    controlloAltraGemma(ovest, pos(R, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, TmpListaGemme1),
+    select(gemma(pos(R, C)), TmpListaGemme1, TmpListaGemme2),
+    continuaSpostamentoGemma(ovest, pos(R, NewC), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(R, NewC))|TmpListaGemme2], NewListaGemme).
 
-spostaGemma(sud, pos(R, C)) :-
+spostaGemma(sud, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
     NewR is R + 1,
-    (
-        \+gemma(pos(NewR, C));
-        spostaGemma(sud, pos(NewR, C))
-    ),
-    retract(gemma(pos(R, C))),
-    assert(gemma(pos(NewR, C))),
-    (\+applicabileGemma(sud, pos(NewR, C));
-    spostaGemma(sud, pos(NewR, C))).
+    controlloAltraGemma(sud, pos(NewR, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, TmpListaGemme1),
+    select(gemma(pos(R, C)), TmpListaGemme1, TmpListaGemme2),
+    continuaSpostamentoGemma(sud, pos(NewR, C), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(NewR, C))|TmpListaGemme2], NewListaGemme).
 
-spostaGemma(nord, pos(R, C)) :-
+spostaGemma(nord, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
     NewR is R - 1,
-    (
-        \+gemma(pos(NewR, C));
-        spostaGemma(nord, pos(NewR, C))
-    ),
-    retract(gemma(pos(R, C))),
-    assert(gemma(pos(NewR, C))),
-    (\+applicabileGemma(nord, pos(NewR, C));
-    spostaGemma(nord, pos(NewR, C))).
+    controlloAltraGemma(nord, pos(NewR, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, TmpListaGemme1),
+    select(gemma(pos(R, C)), TmpListaGemme1, TmpListaGemme2),
+    continuaSpostamentoGemma(nord, pos(NewR, C), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(NewR, C))|TmpListaGemme2], NewListaGemme).
+
+
+% Verifico se nella posizione pos(R, C) ci sia una gemma, ed, eventualmente, ne avvio il movimento
+controlloAltraGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, ListaGemme) :-
+    \+member(gemma(pos(R, C)), ListaGemme),
+    !.
+controlloAltraGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
+    spostaGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme).
+
+% Se la mossa è ancora applicabile, continuo lo spostamento della gemma
+continuaSpostamentoGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, ListaGemme) :-
+    \+applicabileGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme),
+    !.
+continuaSpostamentoGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme):-
+    spostaGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme).
 
 
 
+spostaListaGemme([], _, _, _, _, NewListaGemme).
+spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme) :-
+    \+applicabileGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(RG, CG))|Tail]),
+    !,
+    spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme).
 
-
-
-spostaListaGemme([], _).
-spostaListaGemme([pos(RG, CG)|Tail], Direzione) :-
-    % La gemma potrebbe essere stata spostata durante il movimento
-    % di un altro elemento della lista
-    (
-        \+gemma(pos(RG, CG));
-        (
-            \+applicabileGemma(Direzione, pos(RG, CG));
-            spostaGemma(Direzione, pos(RG, CG))
-        )
-    ),
-    spostaListaGemme(Tail, Direzione).
+spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme) :-
+    spostaGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(RG, CG))|Tail], TmpListaGemme),
+    spostaListaGemme(TmpListaGemme, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme).
