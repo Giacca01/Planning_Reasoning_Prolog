@@ -332,6 +332,13 @@ spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiac
 % l'ultimo è lo stato complessivo delle gemm dopo lo spostamento
 spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, [gemma(pos(RG, CG))|NewListaGemme]) :-
     \+applicabileGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme),
+    spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme),
+    \+member(gemma(pos(RG, CG)), NewListaGemme),
+    !.
+    
+
+spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
+    \+applicabileGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme),
     !,
     spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme).
 
