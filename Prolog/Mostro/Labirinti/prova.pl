@@ -5,8 +5,8 @@ iniziale(
     [
         pos(8, 1), 
         pos(8, 1), 
-        [ghiaccio(pos(8, 6))],
-        [martello(pos(8, 5))],
+        [ghiaccio(pos(8, 4))],
+        [martello(pos(8, 3))],
         [
             gemma(pos(4, 8)),
             gemma(pos(4, 7))
@@ -18,8 +18,8 @@ occupata(pos(1, 1)).
 
 finale(
     [
-        pos(8, 8),
-        PosMostro,
+        pos(7, 7),
+        pos(7, 7),
         ListaGhiaccio,
         ListaMartello,
         ListaGemme

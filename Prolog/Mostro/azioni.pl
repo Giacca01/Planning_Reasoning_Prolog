@@ -72,6 +72,7 @@ applicabileGemma(est, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, Li
     % Verifica esistenza muro
     \+member(ghiaccio(pos(R, CRight)), ListaMuriGhiaccio),
     \+finale(pos(R, CRight)),
+    \+member(martello(pos(R, CRight)), ListaMartello),
     % Verifico che la gemma non sbatta contro il mostro
     pos(R, CRight) \= PosMostro,
     controlloGemma(est, pos(R, CRight), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
@@ -83,6 +84,7 @@ applicabileGemma(ovest, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, 
     \+occupata(pos(R, CLeft)),
     \+member(ghiaccio(pos(R, CLeft)), ListaMuriGhiaccio),
     \+finale(pos(R, CLeft)),
+    \+member(martello(pos(R, CLeft)), ListaMartello),
     pos(R, CLeft) \= PosMostro,
     controlloGemma(ovest, pos(R, CLeft), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
@@ -95,6 +97,7 @@ applicabileGemma(sud, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, Li
     \+occupata(pos(RDown, C)),
     \+member(ghiaccio(pos(RDown, C)), ListaMuriGhiaccio),
     \+finale(pos(RDown, C)),
+    \+member(martello(pos(RDown, C)), ListaMartello),
     pos(RDown, C) \= PosMostro,
     controlloGemma(sud, pos(RDown, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
@@ -106,6 +109,7 @@ applicabileGemma(nord, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, L
     \+occupata(pos(RUp, C)),
     \+member(ghiaccio(pos(RUp, C)), ListaMuriGhiaccio),
     \+finale(pos(RUp, C)),
+    \+member(martello(pos(RUp, C)), ListaMartello),
     pos(RUp, C) \= PosMostro,
     controlloGemma(nord, pos(RUp, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
@@ -125,7 +129,7 @@ trasforma(
         [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, TmpListaGemme]
     ),
     % Spostamento delle gemme
-    spostaListaGemme(TmpListaGemme, Direzione, pos(RFin, CFin), ListaMuriGhiaccio, ListaMartello, NewListaGemme).
+    spostaListaGemme(TmpListaGemme, Direzione, pos(RFin, CFin), ListaMuriGhiaccio, ListaMartello, TmpListaGemme, NewListaGemme).
 
 
 
@@ -210,6 +214,15 @@ trasformaMultiStep(nord,
         [pos(NewR, C), pos(NewR, C), TmpListaMuriGhiaccio, TmpListaMartello, TmpListaGemme],
         [pos(RFin, CFin), pos(RFin, CFin), NewListaMuriGhiaccio, NewListaMartello, NewListaGemme]
     ).
+
+
+% Se lo stato di arrivo è quello finale non mi serve applicare ancora la mossa
+continuaSpostamento(Direzione, 
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme],
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]) :-
+        finale([pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]),
+        !.
+
 
 % Se la mossa non è ulteriormente applicabile lo stato ovviamente non cambia
 continuaSpostamento(Direzione, 
@@ -308,12 +321,20 @@ continuaSpostamentoGemma(Direzione, pos(R, C), PosMostro, ListaMuriGhiaccio, Lis
 
 
 
-spostaListaGemme([], _, _, _, _, NewListaGemme).
-spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme) :-
-    \+applicabileGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(RG, CG))|Tail]),
+spostaListaGemme([], _, _, _, _, ListaGemme, ListaGemme).
+spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
+    % Ho già spostato la gemma
+    \+member(gemma(pos(RG, CG)), ListaGemme),
     !,
-    spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme).
+    spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme).
+    
+% Il primo parametro è la lista di gemme da spostare
+% l'ultimo è lo stato complessivo delle gemm dopo lo spostamento
+spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, [gemma(pos(RG, CG))|NewListaGemme]) :-
+    \+applicabileGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme),
+    !,
+    spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme).
 
-spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme) :-
-    spostaGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, [gemma(pos(RG, CG))|Tail], TmpListaGemme),
-    spostaListaGemme(TmpListaGemme, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, NewListaGemme).
+spostaListaGemme([gemma(pos(RG, CG))|Tail], Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, NewListaGemme) :-
+    spostaGemma(Direzione, pos(RG, CG), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme, TmpListaGemme),
+    spostaListaGemme(Tail, Direzione, PosMostro, ListaMuriGhiaccio, ListaMartello, TmpListaGemme, NewListaGemme).
