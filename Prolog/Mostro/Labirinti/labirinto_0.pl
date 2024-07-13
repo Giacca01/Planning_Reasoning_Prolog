@@ -9,7 +9,8 @@ iniziale(
         [martello(pos(8, 3))],
         [
             gemma(pos(5, 1)),
-            gemma(pos(5, 7))
+            gemma(pos(5, 7)),
+            gemma(pos(5, 8))
         ]
     ]
 ).
