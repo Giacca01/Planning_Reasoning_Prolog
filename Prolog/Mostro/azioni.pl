@@ -71,7 +71,7 @@ applicabileGemma(est, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, Li
     \+occupata(pos(R, CRight)),
     % Verifica esistenza muro
     \+member(ghiaccio(pos(R, CRight)), ListaMuriGhiaccio),
-    \+finale(pos(R, CRight)),
+    \+finale([pos(R, CRight), pos(R, CRight), _, _, _]),
     \+member(martello(pos(R, CRight)), ListaMartello),
     % Verifico che la gemma non sbatta contro il mostro
     pos(R, CRight) \= PosMostro,
@@ -83,7 +83,7 @@ applicabileGemma(ovest, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, 
     CLeft is C - 1,
     \+occupata(pos(R, CLeft)),
     \+member(ghiaccio(pos(R, CLeft)), ListaMuriGhiaccio),
-    \+finale(pos(R, CLeft)),
+    \+finale([pos(R, CLeft), pos(R, CLeft), _, _, _]),
     \+member(martello(pos(R, CLeft)), ListaMartello),
     pos(R, CLeft) \= PosMostro,
     controlloGemma(ovest, pos(R, CLeft), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
@@ -96,7 +96,7 @@ applicabileGemma(sud, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, Li
     RDown is R + 1,
     \+occupata(pos(RDown, C)),
     \+member(ghiaccio(pos(RDown, C)), ListaMuriGhiaccio),
-    \+finale(pos(RDown, C)),
+    \+finale([pos(RDown, C), pos(RDown, C), _, _, _]),
     \+member(martello(pos(RDown, C)), ListaMartello),
     pos(RDown, C) \= PosMostro,
     controlloGemma(sud, pos(RDown, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
@@ -108,7 +108,7 @@ applicabileGemma(nord, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, L
     RUp is R - 1,
     \+occupata(pos(RUp, C)),
     \+member(ghiaccio(pos(RUp, C)), ListaMuriGhiaccio),
-    \+finale(pos(RUp, C)),
+    \+finale([pos(RUp, C), pos(RUp, C), _, _, _]),
     \+member(martello(pos(RUp, C)), ListaMartello),
     pos(RUp, C) \= PosMostro,
     controlloGemma(nord, pos(RUp, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
