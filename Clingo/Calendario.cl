@@ -1,13 +1,7 @@
-%*
-    Cose da provare:
-
-    1) codifiche alternative dei dati
-    2) riduzione numero di derby (per ora sono 3, tanti)
-*%
 
 % Definizione dati problema
 
-% Definizione squadre
+% Definizione predicato che modella le squadre
 squadra(inter).
 squadra(milan).
 squadra(juventus).
@@ -23,16 +17,20 @@ squadra(monza).
 squadra(verona).
 squadra(lecce).
 squadra(udinese).
-%squadra(cagliari).
+squadra(sampdoria).
+
+
 % Squadre non richieste dal testo dell'esercizio
+% ma inserite per prove aggiuntive
+
 %squadra(empoli).
 %squadra(frosinone).
 %squadra(sassuolo).
 %squadra(salernitana).
-squadra(sampdoria).
+%squadra(cagliari).
 
 
-% Definizione Città
+% Definizione predicato che modella le Città
 citta(milano).
 citta(torino).
 citta(bergamo).
@@ -66,6 +64,7 @@ stadio(upower).
 stadio(bentegodi).
 stadio(viadelmare).
 stadio(friuli).
+
 %stadio(unipol).
 %stadio(castellani).
 %stadio(stirpe).
@@ -73,7 +72,7 @@ stadio(friuli).
 %stadio(arechi).
 
 
-% Associazioni
+% Predicato che modella l'associazione tra squadra e città
 associateA(milan, milano).
 associateA(inter, milano).
 associateA(juventus, torino).
@@ -89,18 +88,21 @@ associateA(monza, monza).
 associateA(verona, verona).
 associateA(lecce, lecce). 
 associateA(udinese, udine).
+associateA(sampdoria, genoa).
+
 %associateA(cagliari, cagliari).
 %associateA(empoli, empoli).
 %associateA(frosinone, frosinone).
 %associateA(sassuolo, sassuolo).
-associateA(sampdoria, genoa).
 %associateA(salernitana, salerno).
 
 
-% Associazione Città-Squadre
+% Predicato che modella l'sssociazione stadio-squadra
 possessoStadio(sansiro, inter).
 possessoStadio(sansiro, milan).
 possessoStadio(allianz, juventus).
+% Da utilizzare per aumentare il numero di derby
+% tra squadre che condividono il terreno di gioco
 %possessoStadio(olimpicoTorino, juventus).
 possessoStadio(dallara, bologna).
 possessoStadio(gewiss, atalanta).
@@ -114,39 +116,27 @@ possessoStadio(upower, monza).
 possessoStadio(bentegodi, verona).
 possessoStadio(viadelmare, lecce).
 possessoStadio(friuli, udinese).
+possessoStadio(marassi, sampdoria).
+
 %possessoStadio(unipol, cagliari).
 %possessoStadio(castellani, empoli).
 %possessoStadio(stirpe, frosinone).
 %possessoStadio(mapei, sassuolo).
 %possessoStadio(arechi, salernitana).
-possessoStadio(marassi, sampdoria).
 
 
-% Girone d'andata
+% Predicato che modella le partite del girone d'andata
 andata(1..15).
 
-% Girone di ritorno
+% Predicato che modella le partite del girone di ritorno
 ritorno(16..30).
 
+% Regola che modella il concetto di giornata del calendario
 giornata(X) :- andata(X).
 giornata(X) :- ritorno(X).
 
-% Elemento fondamentale del calendario
-% calcolare una soluzione al problema significherà assegnare valori
-% alle variabili di questo predicato in modo da soddisfare i vincoli
-% partita(squadra1, squadra2, stadio, giornata).
 
-
-% Ogni squadra deve giocare in tutte le giornate
-:- giornata(Giornata), squadra(Squadra), not partita(Squadra, _, _, Giornata), not partita(_, Squadra, _, Giornata).
-
-% Per ogni coppia di squadre, esiste una sola giornata in cui si affrontano
-% in teoria dovrebbe bastare sia per imporre che giochino uno volta in casa ed una in trasferta
-
-
-% TODO: sistemare questi vincoli, in modo che funzioni anche con squadre della stessa città
-% Vincoli di livello macro, riguardanti tutto il calendario
-% Per ogni coppia squadra1-giornata, c'è al più una partita giocata in casa da Squadra1
+% Per ogni coppia squadra1-squadra2, c'è esattamente una partita giocata in casa da Squadra1
 1 {partita(Squadra1, Squadra2, Stadio, Giornata) : giornata(Giornata)} 1 :- 
     squadra(Squadra1), 
     squadra(Squadra2), 
@@ -154,23 +144,26 @@ giornata(X) :- ritorno(X).
     associateA(Squadra1, Citta),
     possessoStadio(Stadio, Squadra1).
 
+% Per ogni coppia squadra1-giornata, c'è al più una squadra2 affrontanta in casa da squadra1
 0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra2), Squadra2 != Squadra1} 1 :-
     giornata(Giornata),
     squadra(Squadra1),
     associateA(Squadra1, Citta),
     possessoStadio(Stadio, Squadra1).
 
+% Per ogni coppia squadra2-giornata, c'è al più una squadra1 affrontata in trasferta da squadra2
 0 {partita(Squadra1, Squadra2, Stadio, Giornata) : squadra(Squadra1), associateA(Squadra1, Citta), possessoStadio(Stadio, Squadra1), Squadra1 != Squadra2} 1 :-
     giornata(Giornata),
     squadra(Squadra2).
 
 
+% Ogni squadra deve giocare, in casa oppure in trasferta, in tutte le giornate
+:- giornata(Giornata), squadra(Squadra), not partita(Squadra, _, _, Giornata), not partita(_, Squadra, _, Giornata).
+
+
 % La stessa squadra non può giocare in casa e in trasferta nella giornata
 :- partita(Squadra1, _, _, Giornata), partita(_, Squadra1, _, Giornata).
 
-
-% Questo è sicuramente subsunto dall'imporre Squadra1 != Squadra2 nei vincoli precedenti
-% :- partita(Squadra1, Squadra1, _, _).
 
 % Non ci devono essere più partite tra le stesse squadre nello stesso girone
 :- partita(Squadra1, Squadra2, _, Giornata1), 
@@ -183,11 +176,9 @@ giornata(X) :- ritorno(X).
     ritorno(Giornata1),
     ritorno(Giornata2).
 
+
 % Due squadre non possono giocare nello stesso stadio e nella stessa giornata
-% Ad assicurarsi che lo stadio sia ben impostato sono i vincoli "costruttivi"
-% di sopra, che dicono come deve essere fatto partita
-% qui ci limitiamo ad escludere istanze già fatte
-% in caso di derby c'è un solo record partita, quindi in teoria basta quello per escludere il caso dei derby
+% in caso di derby c'è una sola istanza di partita, quindi questo vincolo non scatta
 :- partita(Squadra1, _, Stadio, Giornata),
 partita(Squadra2, _, Stadio, Giornata),
 squadra(Squadra1),
@@ -208,8 +199,6 @@ partita(_, Squadra1, _, Giornata3),
 Giornata2 == Giornata1 + 1,
 Giornata3 == Giornata2 + 1.
 
-% Non ci devono essere più partite nello stesso stadio nella stessa giornata
-% fatto salvo per i derby
 
 % Conteggio numero di giornate girone
 numGiornateAndata(N) :- N = #count {X:andata(X)}.
