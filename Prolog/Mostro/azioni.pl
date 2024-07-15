@@ -12,8 +12,11 @@ applicabile(sud, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaG
     num_righe(N),
     R < N,
     RDown is R + 1,
+    % Non ci sono muri fissi nella posizione di arrivo
     \+occupata(pos(RDown, C)),
+    % Non ci sono muri di ghiaccio nella posizione di arrivo
     controlloGhiaccio(pos(RDown, C), ListaMuriGhiaccio, ListaMartello),
+    % Non ci sono gemme nella posizione di arrivo, oppure si possono spostare
     controlloGemma(sud, pos(RDown, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
 
@@ -41,37 +44,32 @@ controlloGhiaccio(NuovaPos, ListaMuriGhiaccio, ListaMartello) :-
     \+member(ghiaccio(NuovaPos), ListaMuriGhiaccio),
     !.
 % Nella posizione di arrivo c'è un muro di ghiaccio, quindi l'agente deve avere il martello
+% per potervisi spostare
 controlloGhiaccio(NuovaPos, ListaMuriGhiaccio, [possiedeMartello]).
     
-% Nella Posizione di arrivo non ci devono essere gemme, oppure devono essere spostabili
+% Nella Posizione di arrivo non ci devono essere gemme
 controlloGemma(Direzione, NuovaPos, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme) :-
     \+member(gemma(NuovaPos), ListaGemme),
     !.
+% oppure devono essere spostabili
 controlloGemma(Direzione, NuovaPos, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme) :-
     applicabileGemma(Direzione, NuovaPos, PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme).
 
 
 
-
-
-
-
-
-
-
-
-
 % Condizioni di spostamento della gemma ad est
-% TODO: controllare se la posizione del mostro sia corretta
 % Qui pos(R, C) è la posizione della gemma
 applicabileGemma(est, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, ListaGemme):-
     num_col(N),
     C < N,
     CRight is C + 1,
+    % non ci devono essere muri fissi nella posizione di arrivo
     \+occupata(pos(R, CRight)),
-    % Verifica esistenza muro
+    % non ci devono essere muri di ghiaccio nella posizione di arrivo
     \+member(ghiaccio(pos(R, CRight)), ListaMuriGhiaccio),
+    % la posizione di arrivo non contiene il portale
     \+finale([pos(R, CRight), pos(R, CRight), _, _, _]),
+    % la posizione di arrivo non contiene il martello
     \+member(martello(pos(R, CRight)), ListaMartello),
     % Verifico che la gemma non sbatta contro il mostro
     pos(R, CRight) \= PosMostro,
@@ -116,7 +114,7 @@ applicabileGemma(nord, pos(R, C), PosMostro, ListaMuriGhiaccio, ListaMartello, L
 
 
 
-% Driver dello spostamento di n passi, da pos(R, C) a pos(R, CFin)
+% Driver dello spostamento di n passi, da pos(R, C) a pos(RFin, CFin)
 trasforma(
     Direzione, 
     [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme], 
@@ -130,8 +128,6 @@ trasforma(
     ),
     % Spostamento delle gemme
     spostaListaGemme(TmpListaGemme, Direzione, pos(RFin, CFin), ListaMuriGhiaccio, ListaMartello, TmpListaGemme, NewListaGemme).
-
-
 
 
 
@@ -219,15 +215,17 @@ trasformaMultiStep(nord,
 % Se lo stato di arrivo è quello finale non mi serve applicare ancora la mossa
 continuaSpostamento(Direzione, 
     [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme],
-    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]) :-
-        finale([pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]),
-        !.
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]
+) :-
+    finale([pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]),
+    !.
 
 
 % Se la mossa non è ulteriormente applicabile lo stato ovviamente non cambia
 continuaSpostamento(Direzione, 
     [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme],
-    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]) :-
+    [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]
+) :-
     \+applicabile(Direzione, [pos(R, C), pos(R, C), ListaMuriGhiaccio, ListaMartello, ListaGemme]),
     !.
 

@@ -1,39 +1,33 @@
 ricerca(CamminoFinale) :-
     iniziale(S0),
     euristica(S0, Soglia),
-    NumeroTentativi is 500,
-    ida_driver(S0, [], [S0], Soglia, NumeroTentativi, CamminoInverso),
+    ida_driver(S0, [], [S0], Soglia, CamminoInverso),
     inverti(CamminoInverso, CamminoFinale).
 
 
-ida_driver(S0, Cammino, Visitati, Soglia, NumeroTentativi, CamminoInverso) :-
-    NumeroTentativi > 0,
+ida_driver(S0, Cammino, Visitati, Soglia, CamminoInverso) :-
     % Iterazione i-esima
     ida(S0, Cammino, Visitati, Soglia, CamminoInverso, 0),
     % Se l'iterazione ha successo, non c'è bisogno di considerare l'applicazione di altre regole
     !.
 
-ida_driver(S0, Cammino, Visitati, Soglia, NumeroTentativi, CamminoInverso) :-
-    NumeroTentativi > 0,
-    % Se arrivo qui, l'iterazione i-esimo non è andata a buon fine
+ida_driver(S0, Cammino, Visitati, Soglia, CamminoInverso) :-
+    % Se arrivo qui, l'iterazione i-esima non è andata a buon fine
+    % quindi devo salvare il minimo dei valori fuori soglia
 
     % Recupero le stime di costo prodotte durante l'iteazione i-esima
     findall(StimaCosto, (soglia(S, StimaCosto), isGreater(StimaCosto, Soglia)), StimeMaggiori),
-   % exclude(>=(Soglia), ListaStime, ListaOltreSoglia),
     min_list(StimeMaggiori, NuovaSoglia),
     % Indispensabile, altrimenti tutte le iterazioni successive continueranno ad usare
-    % la soglia della prima. Inoltre, così ci sono meno fatti da recupera con findAll
+    % la soglia della prima, che, per costruzione, è minore di quelle che verranno dopo
     retractall(soglia(_, _)),
     % Inizio iterazione i+1-esima
-    NewNumeroTentativi is NumeroTentativi - 1,
-    ida_driver(S0, Cammino, Visitati, NuovaSoglia, NewNumeroTentativi, CamminoInverso).
-% Non serve mettere altri cut, tanto non ci sono altre regole da provare
-
+    ida_driver(S0, Cammino, Visitati, NuovaSoglia, CamminoInverso).
 
 isGreater(Stima, Soglia) :-
     Stima > Soglia.
 
-% Se lo stato è già stato visitato non ho regole da applicare e quindi fallisco
+
 ida(S, Cammino, Visitati, Soglia, Cammino, _):-
     % lo stato corrente è entro il limite: procediamo con la valutazione
 
@@ -45,9 +39,10 @@ ida(S, Cammino, Visitati, Soglia, Cammino, _):-
     !.
 
 ida(S, Cammino, Visitati, Soglia, CamminoInverso, CostoAttuale):-
-    % Genero i nodi figli
+    % Genero uno dei nodi figli
     applicabile(Az, S),
     trasforma(Az, S, SNuovo),
+    % processamento del nodo figlio
     \+member(SNuovo, Visitati),
     euristica(SNuovo, StimaCosto),
     NewCostoAttuale is CostoAttuale + 1,
@@ -63,7 +58,6 @@ ida(S, Cammino, Visitati, Soglia, CamminoInverso, CostoAttuale):-
 
 % Se il nodo fa già parte del path non ci sono regole applicabili
 % quindi la ricerca fallisce e si passa al successivo
-% anche qui, non servono dei cut, tanto non ci sono altre regole applicabili
 
 
 

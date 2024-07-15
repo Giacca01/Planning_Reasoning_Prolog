@@ -1,3 +1,7 @@
+% La semantica dei predicati che seguono
+% e di quelli usati per modellare il labirinto
+% è la stessa vista a lezione
+
 % Condizioni di applicabilità delle singole azioni
 applicabile(nord, pos(R, C)) :-
     R > 1,
